@@ -1,0 +1,431 @@
+// ============================================================
+// MEE Stock - schema.prisma (ฉบับสมบูรณ์ พร้อม generate/migrate)
+// วางทับไฟล์ apps/api/prisma/schema.prisma ทั้งไฟล์
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Enums ----------
+
+enum EmployeeRole {
+  REQUESTER // ผู้เบิก
+  APPROVER // ผู้อนุมัติ
+  WAREHOUSE // ผู้ดูแลคลัง
+  EXECUTIVE // ผู้บริหาร
+}
+
+enum AccessLevel {
+  STAFF // พนักงานทั่วไป/พนักงานเบิกจ่าย - ไม่เห็นต้นทุนสินค้า
+  MANAGER // ผู้จัดการขึ้นไป - เห็นต้นทุนได้
+  ADMIN // แอดมินระบบ - เห็นต้นทุนได้ + จัดการสิทธิ์/master data
+}
+
+enum WarehouseType {
+  CENTRAL
+  SITE
+  TEMPORARY
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TransactionType {
+  RECEIVE
+  ISSUE
+  RETURN
+  TRANSFER_OUT
+  TRANSFER_IN
+  ADJUSTMENT
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum IssueStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  PARTIALLY_FULFILLED
+  FULFILLED
+}
+
+enum POStatus {
+  DRAFT
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+// ---------- Master Data ----------
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  materials Material[]
+}
+
+model Material {
+  id           String    @id @default(cuid())
+  code         String    @unique
+  name         String
+  categoryId   String
+  category     Category  @relation(fields: [categoryId], references: [id])
+  unit         String
+  standardCost Decimal   @db.Decimal(12, 2)
+  supplierId   String?
+  supplier     Supplier? @relation(fields: [supplierId], references: [id])
+  reorderPoint Decimal?  @db.Decimal(12, 2)
+  safetyStock  Decimal?  @db.Decimal(12, 2)
+  leadTimeDays Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectPrices      ProjectMaterialPrice[]
+  purchaseOrderItems PurchaseOrderItem[]
+  goodsReceiveItems  GoodsReceiveItem[]
+  issueItems         MaterialIssueItem[]
+  returnItems        MaterialReturnItem[]
+  transferItems      StockTransferItem[]
+  countItems         StockCountItem[]
+  transactions       StockTransaction[]
+
+  @@index([categoryId])
+  @@index([supplierId])
+}
+
+model Supplier {
+  id             String          @id @default(cuid())
+  name           String
+  contact        String?
+  materials      Material[]
+  purchaseOrders PurchaseOrder[]
+  goodsReceives  GoodsReceive[]
+}
+
+model Warehouse {
+  id        String        @id @default(cuid())
+  name      String
+  type      WarehouseType
+  projectId String?
+  project   Project?      @relation(fields: [projectId], references: [id])
+
+  goodsReceives GoodsReceive[]
+  issues        MaterialIssue[]
+  returns       MaterialReturn[]
+  stockCounts   StockCount[]
+  transactions  StockTransaction[]
+  transfersFrom StockTransfer[]    @relation("TransferFrom")
+  transfersTo   StockTransfer[]    @relation("TransferTo")
+}
+
+model Customer {
+  id       String    @id @default(cuid())
+  name     String
+  contact  String?
+  projects Project[]
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  code           String        @unique
+  name           String
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  startDate      DateTime
+  endDate        DateTime?
+  contractValue  Decimal       @db.Decimal(14, 2)
+  materialBudget Decimal?      @db.Decimal(14, 2)
+  laborBudget    Decimal?      @db.Decimal(14, 2)
+  otherBudget    Decimal?      @db.Decimal(14, 2)
+  status         ProjectStatus @default(PLANNING)
+
+  warehouses     Warehouse[]
+  issues         MaterialIssue[]
+  returns        MaterialReturn[]
+  costs          ProjectCost[]
+  revenues       ProjectRevenue[]
+  materialPrices ProjectMaterialPrice[]
+  transactions   StockTransaction[]
+}
+
+model Employee {
+  id          String       @id @default(cuid())
+  name        String
+  role        EmployeeRole
+  accessLevel AccessLevel  @default(STAFF)
+  email       String?      @unique
+
+  issuesRequested   MaterialIssue[]        @relation("Requester")
+  issuesFulfilled   MaterialIssue[]        @relation("Fulfiller")
+  approvals         Approval[]
+  purchaseOrders    PurchaseOrder[]        @relation("POCreatedBy")
+  goodsReceives     GoodsReceive[]         @relation("GRCreatedBy")
+  materialReturns   MaterialReturn[]       @relation("MRCreatedBy")
+  stockTransfers    StockTransfer[]        @relation("STCreatedBy")
+  stockCountsEdited StockCount[]           @relation("StockEditor")
+  transactions      StockTransaction[]     @relation("TxPerformer")
+  sellingPricesSet  ProjectMaterialPrice[] @relation("PriceSetter")
+}
+
+model ProjectMaterialPrice {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id])
+  materialId   String
+  material     Material @relation(fields: [materialId], references: [id])
+  sellingPrice Decimal  @db.Decimal(12, 2)
+  setById      String
+  setBy        Employee @relation("PriceSetter", fields: [setById], references: [id])
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  @@unique([projectId, materialId])
+}
+
+// ---------- Transactions ----------
+
+model PurchaseOrder {
+  id            String              @id @default(cuid())
+  docNo         String              @unique
+  date          DateTime            @default(now())
+  supplierId    String
+  supplier      Supplier            @relation(fields: [supplierId], references: [id])
+  status        POStatus            @default(DRAFT)
+  createdById   String
+  createdBy     Employee            @relation("POCreatedBy", fields: [createdById], references: [id])
+  ipAddress     String?
+  items         PurchaseOrderItem[]
+  goodsReceives GoodsReceive[]
+  createdAt     DateTime            @default(now())
+
+  @@index([status])
+  @@index([supplierId])
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  materialId      String
+  material        Material      @relation(fields: [materialId], references: [id])
+  orderedQty      Decimal       @db.Decimal(12, 2)
+  receivedQty     Decimal       @default(0) @db.Decimal(12, 2)
+  unitCost        Decimal       @db.Decimal(12, 2)
+}
+
+model GoodsReceive {
+  id              String             @id @default(cuid())
+  docNo           String             @unique
+  date            DateTime           @default(now())
+  warehouseId     String
+  warehouse       Warehouse          @relation(fields: [warehouseId], references: [id])
+  supplierId      String?
+  supplier        Supplier?          @relation(fields: [supplierId], references: [id])
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder?     @relation(fields: [purchaseOrderId], references: [id])
+  items           GoodsReceiveItem[]
+  createdById     String
+  createdBy       Employee           @relation("GRCreatedBy", fields: [createdById], references: [id])
+  ipAddress       String?
+  createdAt       DateTime           @default(now())
+
+  @@index([warehouseId])
+  @@index([purchaseOrderId])
+}
+
+model GoodsReceiveItem {
+  id             String       @id @default(cuid())
+  goodsReceiveId String
+  goodsReceive   GoodsReceive @relation(fields: [goodsReceiveId], references: [id])
+  materialId     String
+  material       Material     @relation(fields: [materialId], references: [id])
+  quantity       Decimal      @db.Decimal(12, 2)
+  unitCost       Decimal      @db.Decimal(12, 2)
+}
+
+model MaterialIssue {
+  id            String              @id @default(cuid())
+  docNo         String              @unique
+  date          DateTime            @default(now())
+  projectId     String
+  project       Project             @relation(fields: [projectId], references: [id])
+  warehouseId   String
+  warehouse     Warehouse           @relation(fields: [warehouseId], references: [id])
+  requesterId   String
+  requester     Employee            @relation("Requester", fields: [requesterId], references: [id])
+  approvalId    String?             @unique
+  approval      Approval?           @relation(fields: [approvalId], references: [id])
+  status        IssueStatus         @default(PENDING_APPROVAL)
+  fulfilledById String?
+  fulfilledBy   Employee?           @relation("Fulfiller", fields: [fulfilledById], references: [id])
+  fulfilledAt   DateTime?
+  ipAddress     String?
+  items         MaterialIssueItem[]
+  createdAt     DateTime            @default(now())
+
+  @@index([projectId, status])
+  @@index([warehouseId])
+}
+
+model MaterialIssueItem {
+  id              String        @id @default(cuid())
+  materialIssueId String
+  materialIssue   MaterialIssue @relation(fields: [materialIssueId], references: [id])
+  materialId      String
+  material        Material      @relation(fields: [materialId], references: [id])
+  requestedQty    Decimal       @db.Decimal(12, 2)
+  approvedQty     Decimal?      @db.Decimal(12, 2)
+  issuedQty       Decimal?      @db.Decimal(12, 2)
+  unitCost        Decimal       @db.Decimal(12, 2)
+  isShortfall     Boolean       @default(false)
+  shortfallNote   String?
+}
+
+model MaterialReturn {
+  id          String               @id @default(cuid())
+  docNo       String               @unique
+  date        DateTime             @default(now())
+  projectId   String
+  project     Project              @relation(fields: [projectId], references: [id])
+  warehouseId String
+  warehouse   Warehouse            @relation(fields: [warehouseId], references: [id])
+  createdById String
+  createdBy   Employee             @relation("MRCreatedBy", fields: [createdById], references: [id])
+  ipAddress   String?
+  createdAt   DateTime             @default(now())
+  items       MaterialReturnItem[]
+
+  @@index([projectId])
+  @@index([warehouseId])
+}
+
+model MaterialReturnItem {
+  id               String         @id @default(cuid())
+  materialReturnId String
+  materialReturn   MaterialReturn @relation(fields: [materialReturnId], references: [id])
+  materialId       String
+  material         Material       @relation(fields: [materialId], references: [id])
+  quantity         Decimal        @db.Decimal(12, 2)
+}
+
+model StockTransfer {
+  id              String              @id @default(cuid())
+  docNo           String              @unique
+  date            DateTime            @default(now())
+  fromWarehouseId String
+  fromWarehouse   Warehouse           @relation("TransferFrom", fields: [fromWarehouseId], references: [id])
+  toWarehouseId   String
+  toWarehouse     Warehouse           @relation("TransferTo", fields: [toWarehouseId], references: [id])
+  createdById     String
+  createdBy       Employee            @relation("STCreatedBy", fields: [createdById], references: [id])
+  ipAddress       String?
+  createdAt       DateTime            @default(now())
+  items           StockTransferItem[]
+
+  @@index([fromWarehouseId])
+  @@index([toWarehouseId])
+}
+
+model StockTransferItem {
+  id              String        @id @default(cuid())
+  stockTransferId String
+  stockTransfer   StockTransfer @relation(fields: [stockTransferId], references: [id])
+  materialId      String
+  material        Material      @relation(fields: [materialId], references: [id])
+  quantity        Decimal       @db.Decimal(12, 2)
+}
+
+model StockCount {
+  id          String           @id @default(cuid())
+  docNo       String           @unique
+  date        DateTime         @default(now())
+  warehouseId String
+  warehouse   Warehouse        @relation(fields: [warehouseId], references: [id])
+  editedById  String
+  editedBy    Employee         @relation("StockEditor", fields: [editedById], references: [id])
+  editedAt    DateTime         @default(now())
+  ipAddress   String?
+  items       StockCountItem[]
+
+  @@index([warehouseId])
+}
+
+model StockCountItem {
+  id           String     @id @default(cuid())
+  stockCountId String
+  stockCount   StockCount @relation(fields: [stockCountId], references: [id])
+  materialId   String
+  material     Material   @relation(fields: [materialId], references: [id])
+  systemQty    Decimal    @db.Decimal(12, 2)
+  actualQty    Decimal    @db.Decimal(12, 2)
+  reason       String?
+}
+
+model Approval {
+  id            String         @id @default(cuid())
+  approverId    String
+  approver      Employee       @relation(fields: [approverId], references: [id])
+  status        ApprovalStatus @default(PENDING)
+  approvedAt    DateTime?
+  note          String?
+  materialIssue MaterialIssue?
+}
+
+// ---------- Core Ledger ----------
+
+model StockTransaction {
+  id             String          @id @default(cuid())
+  date           DateTime        @default(now())
+  type           TransactionType
+  materialId     String
+  material       Material        @relation(fields: [materialId], references: [id])
+  warehouseId    String
+  warehouse      Warehouse       @relation(fields: [warehouseId], references: [id])
+  projectId      String?
+  project        Project?        @relation(fields: [projectId], references: [id])
+  quantityChange Decimal         @db.Decimal(12, 2)
+  unitCost       Decimal         @db.Decimal(12, 2)
+  refDocType     String
+  refDocId       String
+  performedById  String
+  performedBy    Employee        @relation("TxPerformer", fields: [performedById], references: [id])
+  ipAddress      String?
+  createdAt      DateTime        @default(now())
+
+  @@index([materialId, warehouseId])
+  @@index([projectId])
+}
+
+// ---------- Project Financials (Phase 2) ----------
+
+model ProjectCost {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  category  String
+  amount    Decimal  @db.Decimal(14, 2)
+  date      DateTime @default(now())
+}
+
+model ProjectRevenue {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  amount    Decimal  @db.Decimal(14, 2)
+  date      DateTime @default(now())
+}

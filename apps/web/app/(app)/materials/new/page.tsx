@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Category } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
-import { BarcodeField } from "./BarcodeField";
+import { BarcodeField } from "../BarcodeField";
 import { createMaterialAction } from "./actions";
 
 export default async function NewMaterialPage({ searchParams }: { searchParams: { error?: string } }) {

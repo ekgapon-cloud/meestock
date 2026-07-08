@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Category, MaterialListResponse } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../lib/api";
-import { deactivateMaterialAction } from "./actions";
 
 function formatCurrency(value: string | number | null) {
   return new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(Number(value ?? 0));
@@ -79,7 +78,6 @@ export default async function MaterialsPage({
               <th>หมวดหมู่</th>
               <th>หน่วย</th>
               <th>ต้นทุนมาตรฐาน</th>
-              <th>สถานะ</th>
               <th />
             </tr>
           </thead>
@@ -94,15 +92,10 @@ export default async function MaterialsPage({
                 <td>{m.category.name}</td>
                 <td>{m.unit}</td>
                 <td>{formatCurrency(m.standardCost)}</td>
-                <td>{m.isActive ? "ใช้งาน" : "ปิดใช้งาน"}</td>
                 <td>
-                  {m.isActive && (
-                    <form action={deactivateMaterialAction.bind(null, m.id)}>
-                      <button type="submit" className="btn-danger-sm">
-                        ปิดใช้งาน
-                      </button>
-                    </form>
-                  )}
+                  <Link href={`/materials/${m.id}/edit`} className="btn-secondary-sm">
+                    แก้ไขวัสดุ
+                  </Link>
                 </td>
               </tr>
             ))}

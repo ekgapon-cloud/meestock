@@ -173,6 +173,12 @@ User สั่ง deploy จริง — backend ขึ้น Railway (service 
 - **Verified จริงกับ production stack ตัวจริง** (ไม่ใช่ local): `/health` → 200, login admin → 200 ได้ JWT จริง ทั้งยิงตรง API และผ่านหน้าเว็บจริง (BFF), `/dashboard` หลัง login แสดงข้อมูลจริงถูกต้อง. ตั้ง `CORS_ORIGIN` บน Railway ชี้กลับไป Vercel URL สุดท้ายแล้ว
 - **URL สุดท้าย**: backend `https://meestock-api-production.up.railway.app`, frontend `https://meestock.vercel.app`
 
+## Sync ข้อมูลจริง (Landmark) จาก local ขึ้น production (2026-07-08)
+User สั่งให้ dump ข้อมูลวัสดุขึ้น Railway ให้ทั้งสองฐานข้อมูล (local `meestock_dev` กับ production) เหมือนกันเป๊ะ ตอนนั้น production ยังมีแค่ข้อมูล seed เดิม (1 material, 1 category, 2 warehouse) ส่วน local มีข้อมูลจริงครบ (557 materials/12 categories/5 warehouses/59 stock transactions ฯลฯ จากงานเซสชันก่อนๆ ทั้งหมด)
+- วิธี: `docker exec meestock-db pg_dump --data-only --disable-triggers --exclude-table=_prisma_migrations` จาก local → `TRUNCATE ... CASCADE` ทุกตารางบน production (ยกเว้น `_prisma_migrations` เพื่อไม่ให้ Prisma migration tracking เพี้ยน) → restore dump เข้า production ผ่าน `psql` ตรงไปที่ `DATABASE_PUBLIC_URL` ของ Railway (container local เชื่อมต่อ public host ของ Railway ได้ตรงๆ ไม่ต้องผ่านอะไรเพิ่ม)
+- **Verified**: เทียบ row count ทุกตารางระหว่าง local/production ตรงกันเป๊ะทุกตัว (Material 557, Category 12, Warehouse 5, StockTransaction 59 ฯลฯ), login จริงผ่านทั้ง API ตรงและหน้าเว็บจริงบน production หลัง sync ยังทำงานปกติ, หน้า `/materials` บน `meestock.vercel.app` แสดงรหัส `LM-xxxx` จริงถูกต้อง
+- **หมายเหตุ**: การ sync ครั้งนี้ทับข้อมูล seed เดิมของ production ทั้งหมด (employee ID เปลี่ยนไปเป็นของ local แทน แต่ email/password เดิมเหมือนกันเพราะมาจาก `seed.ts` เดียวกัน) — ถ้าจะ sync ซ้ำในอนาคตต้องระวังลำดับเดิม (dump ก่อน ล้างปลายทางก่อน restore เสมอ ห้ามสลับ)
+
 ## TODO / Open Questions
 - [x] ยืนยัน field ทั้งหมดใน schema — ตรงกับ `schema.prisma` จริงแล้ว
 - [x] Edge case ของ role — user ยืนยันแล้วว่าต้องการ role จัดซื้อ (`PURCHASING`) แยกจาก `WAREHOUSE`, implement เสร็จแล้วด้านบน

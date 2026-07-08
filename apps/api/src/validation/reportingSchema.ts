@@ -15,5 +15,11 @@ export const issueHistoryQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
 });
 
+export const siteFinancialSummaryQuerySchema = z.object({
+  dateFrom: z.coerce.date().optional(),
+  dateTo: z.coerce.date().optional(),
+});
+
 export type StockValueQuery = z.infer<typeof stockValueQuerySchema>;
 export type IssueHistoryQuery = z.infer<typeof issueHistoryQuerySchema>;
+export type SiteFinancialSummaryQuery = z.infer<typeof siteFinancialSummaryQuerySchema>;

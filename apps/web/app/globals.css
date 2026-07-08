@@ -398,6 +398,72 @@ button:disabled {
   color: var(--color-text-muted);
 }
 
+.hbar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.hbar-row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 14rem) 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.hbar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hbar-track {
+  background: var(--color-bg);
+  border-radius: 4px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.hbar-fill {
+  background: var(--color-gold);
+  height: 100%;
+  border-radius: 4px;
+  min-width: 3px;
+}
+
+.hbar-value {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  min-width: 6rem;
+  text-align: right;
+}
+
+.budget-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.budget-bar-track {
+  background: var(--color-bg);
+  border-radius: 4px;
+  height: 8px;
+  width: 5rem;
+  overflow: hidden;
+}
+
+.budget-bar-fill {
+  background: var(--color-primary);
+  height: 100%;
+  border-radius: 4px;
+}
+
+.budget-bar-over {
+  background: var(--color-danger);
+}
+
 .page-header {
   display: flex;
   align-items: center;

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, TransactionType } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { employeeRefSelect } from "./employeeRepository.js";
 
@@ -61,9 +61,9 @@ export function groupIssuedQuantityByMaterial(where: Prisma.StockTransactionWher
   });
 }
 
-export function findIssueTransactionsForCosting(where: Prisma.StockTransactionWhereInput) {
+export function findTransactionsByTypeForCosting(where: Prisma.StockTransactionWhereInput, type: TransactionType) {
   return prisma.stockTransaction.findMany({
-    where: { ...where, type: "ISSUE" },
+    where: { ...where, type },
     select: { warehouseId: true, quantityChange: true, unitCost: true },
   });
 }

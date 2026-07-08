@@ -1,8 +1,12 @@
 import type { Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 import { getAccessibleWarehouseIds } from "../services/accessControlService.js";
-import { getIssueHistoryReport, getStockValueReport } from "../services/reportingService.js";
-import { issueHistoryQuerySchema, stockValueQuerySchema } from "../validation/reportingSchema.js";
+import { getIssueHistoryReport, getSiteFinancialSummary, getStockValueReport } from "../services/reportingService.js";
+import {
+  issueHistoryQuerySchema,
+  siteFinancialSummaryQuerySchema,
+  stockValueQuerySchema,
+} from "../validation/reportingSchema.js";
 
 function requireUser(req: Request) {
   if (!req.user) {
@@ -24,5 +28,13 @@ export async function getIssueHistoryReportHandler(req: Request, res: Response) 
   const query = issueHistoryQuerySchema.parse(req.query);
   const accessibleWarehouseIds = await getAccessibleWarehouseIds(user.id, user.accessLevel);
   const report = await getIssueHistoryReport(query, accessibleWarehouseIds);
+  res.json(report);
+}
+
+export async function getSiteFinancialSummaryHandler(req: Request, res: Response) {
+  const user = requireUser(req);
+  const query = siteFinancialSummaryQuerySchema.parse(req.query);
+  const accessibleWarehouseIds = await getAccessibleWarehouseIds(user.id, user.accessLevel);
+  const report = await getSiteFinancialSummary(accessibleWarehouseIds, query);
   res.json(report);
 }

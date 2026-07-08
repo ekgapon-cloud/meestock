@@ -7,14 +7,14 @@ import {
   groupIssuesByStatus,
 } from "../repositories/materialIssueRepository.js";
 import {
-  findIssueTransactionsForCosting,
+  findTransactionsByTypeForCosting,
   findTransactionsForCostReplay,
   groupBalanceByMaterial,
   groupBalanceByMaterialWarehouse,
   groupIssuedQuantityByMaterial,
 } from "../repositories/stockTransactionRepository.js";
-import { findWarehousesByIds } from "../repositories/warehouseRepository.js";
-import type { IssueHistoryQuery, StockValueQuery } from "../validation/reportingSchema.js";
+import { findWarehouses, findWarehousesByIds } from "../repositories/warehouseRepository.js";
+import type { IssueHistoryQuery, SiteFinancialSummaryQuery, StockValueQuery } from "../validation/reportingSchema.js";
 import { assertWarehouseAccessible } from "./accessControlService.js";
 
 export interface CostReplayInput {
@@ -201,7 +201,7 @@ async function getTopCostSites(accessibleWarehouseIds: string[] | null, limit = 
   const where: Prisma.StockTransactionWhereInput = accessibleWarehouseIds
     ? { warehouseId: { in: accessibleWarehouseIds } }
     : {};
-  const transactions = await findIssueTransactionsForCosting(where);
+  const transactions = await findTransactionsByTypeForCosting(where, "ISSUE");
 
   const costByWarehouse = new Map<string, number>();
   for (const tx of transactions) {
@@ -221,7 +221,7 @@ async function getTopCostSites(accessibleWarehouseIds: string[] | null, limit = 
     .slice(0, limit);
 }
 
-async function getLowStockMaterials(accessibleWarehouseIds: string[] | null) {
+export async function getLowStockMaterials(accessibleWarehouseIds: string[] | null) {
   const materials = await findActiveMaterialsWithReorderPoint();
   if (materials.length === 0) {
     return [];
@@ -254,6 +254,84 @@ async function getLowStockMaterials(accessibleWarehouseIds: string[] | null) {
       },
     ];
   });
+}
+
+export async function getSiteFinancialSummary(
+  accessibleWarehouseIds: string[] | null,
+  query: SiteFinancialSummaryQuery = {},
+) {
+  const baseWhere: Prisma.WarehouseWhereInput = accessibleWarehouseIds ? { id: { in: accessibleWarehouseIds } } : {};
+  const dateFilter: Prisma.StockTransactionWhereInput =
+    query.dateFrom || query.dateTo
+      ? { date: { ...(query.dateFrom ? { gte: query.dateFrom } : {}), ...(query.dateTo ? { lte: query.dateTo } : {}) } }
+      : {};
+  const txWhere: Prisma.StockTransactionWhereInput = accessibleWarehouseIds
+    ? { warehouseId: { in: accessibleWarehouseIds } }
+    : {};
+
+  const [warehouses, stockValue, issuedTransactions, receivedTransactions, lowStockMaterials] = await Promise.all([
+    findWarehouses(baseWhere),
+    getStockValueReport({}, accessibleWarehouseIds),
+    findTransactionsByTypeForCosting({ ...txWhere, ...dateFilter }, "ISSUE"),
+    findTransactionsByTypeForCosting({ ...txWhere, ...dateFilter }, "RECEIVE"),
+    getLowStockMaterials(accessibleWarehouseIds),
+  ]);
+
+  const remainingValueByWarehouse = new Map(stockValue.valueByWarehouse.map((row) => [row.warehouseId, row.value]));
+
+  const issuedValueByWarehouse = new Map<string, number>();
+  for (const tx of issuedTransactions) {
+    const cost = Math.abs(Number(tx.quantityChange)) * Number(tx.unitCost);
+    issuedValueByWarehouse.set(tx.warehouseId, (issuedValueByWarehouse.get(tx.warehouseId) ?? 0) + cost);
+  }
+
+  const receivedValueByWarehouse = new Map<string, number>();
+  for (const tx of receivedTransactions) {
+    const cost = Math.abs(Number(tx.quantityChange)) * Number(tx.unitCost);
+    receivedValueByWarehouse.set(tx.warehouseId, (receivedValueByWarehouse.get(tx.warehouseId) ?? 0) + cost);
+  }
+
+  const lowStockCountByWarehouse = new Map<string, number>();
+  for (const row of lowStockMaterials) {
+    lowStockCountByWarehouse.set(row.warehouseId, (lowStockCountByWarehouse.get(row.warehouseId) ?? 0) + 1);
+  }
+
+  const sites = warehouses.map((warehouse) => {
+    const remainingValue = remainingValueByWarehouse.get(warehouse.id) ?? 0;
+    const issuedValue = issuedValueByWarehouse.get(warehouse.id) ?? 0;
+    const materialBudget = warehouse.project?.materialBudget ? Number(warehouse.project.materialBudget) : null;
+    return {
+      warehouseId: warehouse.id,
+      warehouseName: warehouse.name,
+      projectId: warehouse.project?.id ?? null,
+      projectName: warehouse.project?.name ?? null,
+      projectCode: warehouse.project?.code ?? null,
+      contractValue: warehouse.project ? Number(warehouse.project.contractValue) : null,
+      materialBudget,
+      remainingValue,
+      issuedValue,
+      receivedValue: receivedValueByWarehouse.get(warehouse.id) ?? 0,
+      lowStockCount: lowStockCountByWarehouse.get(warehouse.id) ?? 0,
+      budgetUtilizationPct: materialBudget && materialBudget > 0 ? (issuedValue / materialBudget) * 100 : null,
+    };
+  });
+
+  const totals = sites.reduce(
+    (acc, site) => ({
+      totalRemainingValue: acc.totalRemainingValue + site.remainingValue,
+      totalIssuedValue: acc.totalIssuedValue + site.issuedValue,
+      totalReceivedValue: acc.totalReceivedValue + site.receivedValue,
+      totalLowStockCount: acc.totalLowStockCount + site.lowStockCount,
+    }),
+    { totalRemainingValue: 0, totalIssuedValue: 0, totalReceivedValue: 0, totalLowStockCount: 0 },
+  );
+
+  return {
+    sites: sites.sort((a, b) => b.remainingValue - a.remainingValue),
+    totals,
+    dateFrom: query.dateFrom?.toISOString() ?? null,
+    dateTo: query.dateTo?.toISOString() ?? null,
+  };
 }
 
 export async function getExecutiveDashboard(accessibleWarehouseIds: string[] | null) {

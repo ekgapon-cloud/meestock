@@ -200,6 +200,16 @@ User แก้ไขความเข้าใจที่ผิดจากร
 - typecheck (api+web) + `pnpm run build` (web) ผ่านหมด — ยังไม่ได้รัน `pnpm run test` (api) เพราะ DB ไม่พร้อม
 - commit ไว้ในเครื่อง (local) เท่านั้น ยังไม่ push
 
+## รายงานสรุปการเงินตามไซต์งาน (2026-07-08)
+User ขอให้หน้ารายงานแสดงข้อมูลการเงินให้มากที่สุด (คงเหลือ/เบิกใช้ไปแล้ว/มูลค่าแบบสรุปต่อไซต์ คลิกดูรายละเอียดได้ มีตัวกรอง) และให้ค้นข้อมูลอินเทอร์เน็ตมาประกอบก่อนออกแบบ — ค้น best-practice ของ inventory/construction financial dashboard (NetSuite/MRPeasy/ฯลฯ) ได้ KPI ที่เกี่ยวข้อง: มูลค่าคงเหลือ, มูลค่าใช้ไป (consumption), งบประมาณเทียบยอดใช้จริง — ใช้เป็นกรอบออกแบบหน้าใหม่
+- หน้าใหม่ `/reports/site-summary` (ลิงก์แรกในหน้า `/reports`, ก่อน stock-value/issue-history เดิม): stat cards รวม (คงเหลือ/เบิกใช้/รับเข้า/ต่ำกว่าจุดสั่งซื้อ ทั้งหมด), horizontal bar chart เทียบมูลค่าคงเหลือแต่ละไซต์ (เดี่ยว hue ทอง ตาม dataviz skill's "sequential=magnitude=one hue"), ตารางรายไซต์ครบทุกตัวเลข+budget utilization bar, มี date-range filter (กรองเฉพาะมูลค่าเบิกใช้/รับเข้า — มูลค่าคงเหลือคือยอด ณ ปัจจุบันเสมอ ไม่กรองตามวันที่ได้เพราะเป็นยอดสะสม)
+- คลิกชื่อไซต์ → `/reports/site-summary/[warehouseId]` แสดงรายละเอียดไซต์นั้นเดี่ยวๆ: stat รวมของไซต์, มูลค่าสัญญา/งบวัสดุ (จาก `Project.contractValue`/`materialBudget` — มีอยู่ใน schema แล้วแต่ยังไม่เคยถูกใช้แสดงผลที่ไหนมาก่อน), ตารางวัสดุคงเหลือ (`/reports/stock-value?warehouseId=X`), ประวัติเบิกจ่ายล่าสุด 10 รายการ (`/reports/issue-history?warehouseId=X`)
+- **หมายเหตุ**: `Project.materialBudget` เป็น null ทุกโปรเจกต์ในข้อมูลจริงตอนนี้ (ไม่เคยมี UI ให้กรอก) เลย budget utilization แสดง "-" ทุกที่ในทางปฏิบัติ — โค้ดพร้อมรองรับเมื่อมีข้อมูลจริงในอนาคต ไม่ได้เพิ่ม UI กรอก budget รอบนี้ (นอกสโคปคำขอ)
+- Backend: เพิ่ม `groupBalanceByMaterial`(มีอยู่แล้วจากงานก่อนหน้า)/`findTransactionsByTypeForCosting` (rename จาก `findIssueTransactionsForCosting` ให้ generic รับ `type` param ใช้ได้ทั้ง ISSUE/RECEIVE), `getSiteFinancialSummary()` ใหม่ประกอบจากฟังก์ชันที่มีอยู่แล้ว (getStockValueReport สำหรับคงเหลือ, groupBy ใหม่สำหรับ issued/received value ต่อ warehouse)
+- Verified: curl endpoint จริง + Playwright screenshot ผ่านหน้าเว็บจริงกับข้อมูล production จริง (Project Landmark 556 รายการวัสดุ) ครบทั้งหน้า list และหน้า drill-down — ตัวเลขตรงกับที่คำนวณเอง
+- typecheck (api+web) + build (web) + test (api, 20/20) ผ่านหมด
+- commit ไว้ในเครื่อง (local) เท่านั้น ยังไม่ push
+
 ## TODO / Open Questions
 - [x] ยืนยัน field ทั้งหมดใน schema — ตรงกับ `schema.prisma` จริงแล้ว
 - [x] Edge case ของ role — user ยืนยันแล้วว่าต้องการ role จัดซื้อ (`PURCHASING`) แยกจาก `WAREHOUSE`, implement เสร็จแล้วด้านบน

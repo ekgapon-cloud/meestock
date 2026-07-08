@@ -299,3 +299,30 @@ export interface ExecutiveDashboard {
     reorderPoint: number;
   }[];
 }
+
+export interface SiteFinancialSummary {
+  warehouseId: string;
+  warehouseName: string;
+  projectId: string | null;
+  projectName: string | null;
+  projectCode: string | null;
+  contractValue: number | null;
+  materialBudget: number | null;
+  remainingValue: number;
+  issuedValue: number;
+  receivedValue: number;
+  lowStockCount: number;
+  budgetUtilizationPct: number | null;
+}
+
+export interface SiteFinancialSummaryReport {
+  sites: SiteFinancialSummary[];
+  totals: {
+    totalRemainingValue: number;
+    totalIssuedValue: number;
+    totalReceivedValue: number;
+    totalLowStockCount: number;
+  };
+  dateFrom: string | null;
+  dateTo: string | null;
+}

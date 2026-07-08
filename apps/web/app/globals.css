@@ -164,11 +164,13 @@ button:disabled {
 }
 
 .btn-secondary-sm {
+  display: inline-block;
   background: transparent;
   color: var(--color-text);
   border: 1px solid var(--color-border);
   padding: 0.35rem 0.75rem;
   font-size: 0.85rem;
+  text-decoration: none;
 }
 
 .btn-secondary-sm:hover {
@@ -724,65 +726,7 @@ tr:last-child td {
   gap: 0.6rem;
 }
 
-.print-letterhead {
-  align-items: center;
-  gap: 1rem;
-}
-
-.print-only {
-  display: none;
-}
-
-.print-company-name {
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-
-.print-company-name-en {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
-.signature-block {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-top: 3rem;
-}
-
-.signature-slot {
-  flex: 1 1 160px;
-  text-align: center;
-}
-
-.signature-line {
-  border-top: 1px solid var(--color-text-muted);
-  margin: 2.5rem 0.5rem 0.4rem;
-}
-
-.signature-name {
-  font-weight: 600;
-  font-size: 0.9rem;
-  min-height: 1.2em;
-}
-
-.signature-label {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
-.signature-date {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  margin-top: 0.4rem;
-}
-
 @media print {
-  @page {
-    margin: 1.5cm;
-  }
-
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -799,17 +743,6 @@ tr:last-child td {
     display: none !important;
   }
 
-  .print-only {
-    display: block;
-  }
-
-  .print-letterhead {
-    display: flex;
-    border-bottom: 2px solid #333;
-    padding-bottom: 0.75rem;
-    margin-bottom: 1.25rem;
-  }
-
   body {
     background: white;
   }
@@ -823,10 +756,6 @@ tr:last-child td {
   table,
   .stat-tile {
     border: 1px solid #999;
-  }
-
-  .signature-block {
-    page-break-inside: avoid;
   }
 
   a {

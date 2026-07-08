@@ -3,9 +3,7 @@ import { redirect } from "next/navigation";
 import type { Me, POStatus, PurchaseOrder } from "shared-types";
 import { apiFetch, ApiError } from "../../../../lib/api";
 import { Logo } from "../../../../components/Logo";
-import { PrintButton } from "../../PrintButton";
-import { PrintLetterhead } from "../../../../components/PrintLetterhead";
-import { SignatureBlock } from "../../../../components/SignatureBlock";
+import { DownloadPdfButton } from "../../DownloadPdfButton";
 import { cancelPurchaseOrderAction, markPurchaseOrderOrderedAction } from "./actions";
 
 const STATUS_LABELS: Record<POStatus, string> = {
@@ -52,7 +50,6 @@ export default async function PurchaseOrderDetailPage({
 
   return (
     <div>
-      <PrintLetterhead />
       <div className="page-header">
         <div className="page-header-title">
           <Logo size={56} />
@@ -60,7 +57,7 @@ export default async function PurchaseOrderDetailPage({
         </div>
         <div className="page-header-actions">
           <span className={`status-badge status-${po.status.toLowerCase()}`}>{STATUS_LABELS[po.status]}</span>
-          <PrintButton />
+          <DownloadPdfButton href={`/api/purchase-orders/${po.id}/pdf`} />
         </div>
       </div>
 
@@ -119,14 +116,6 @@ export default async function PurchaseOrderDetailPage({
           )}
         </section>
       )}
-
-      <SignatureBlock
-        slots={[
-          { label: "ผู้จัดทำ", name: po.createdBy.name },
-          { label: "ผู้อนุมัติสั่งซื้อ" },
-          { label: "ผู้ตรวจสอบ" },
-        ]}
-      />
 
       <p className="print-hide">
         <Link href="/purchase-orders">← กลับไปรายการใบสั่งซื้อ</Link>

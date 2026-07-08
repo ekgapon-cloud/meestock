@@ -3,9 +3,7 @@ import { redirect } from "next/navigation";
 import type { GoodsReceive } from "shared-types";
 import { apiFetch, ApiError } from "../../../../lib/api";
 import { Logo } from "../../../../components/Logo";
-import { PrintButton } from "../../PrintButton";
-import { PrintLetterhead } from "../../../../components/PrintLetterhead";
-import { SignatureBlock } from "../../../../components/SignatureBlock";
+import { DownloadPdfButton } from "../../DownloadPdfButton";
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
@@ -29,13 +27,12 @@ export default async function GoodsReceiveDetailPage({ params }: { params: { id:
 
   return (
     <div>
-      <PrintLetterhead />
       <div className="page-header">
         <div className="page-header-title">
           <Logo size={56} />
           <h1>{goodsReceive.docNo}</h1>
         </div>
-        <PrintButton />
+        <DownloadPdfButton href={`/api/goods-receives/${goodsReceive.id}/pdf`} />
       </div>
 
       <div className="stat-grid">
@@ -88,14 +85,6 @@ export default async function GoodsReceiveDetailPage({ params }: { params: { id:
           ))}
         </tbody>
       </table>
-
-      <SignatureBlock
-        slots={[
-          { label: "ผู้รับของ", name: goodsReceive.createdBy.name },
-          { label: "ผู้ตรวจสอบ" },
-          { label: "ผู้ส่งของ (ตัวแทนผู้ขาย)" },
-        ]}
-      />
 
       <p className="print-hide">
         <Link href="/goods-receives">← กลับไปรายการรับวัสดุ</Link>

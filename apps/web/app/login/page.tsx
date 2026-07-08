@@ -36,7 +36,7 @@ export default function LoginPage() {
   return (
     <main className="login-page">
       <form onSubmit={handleSubmit} className="login-form">
-        <h1>MEE Stock</h1>
+        <h1>M.EE Warehouse</h1>
         <p className="subtitle">เข้าสู่ระบบ</p>
 
         {error && <div className="error-banner">{error}</div>}

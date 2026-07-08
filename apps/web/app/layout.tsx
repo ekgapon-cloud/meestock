@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MEE Stock",
+  title: "M.EE Warehouse",
   description: "ระบบบริหารจัดการสต๊อกวัสดุไฟฟ้าสำหรับงานก่อสร้าง",
 };
 

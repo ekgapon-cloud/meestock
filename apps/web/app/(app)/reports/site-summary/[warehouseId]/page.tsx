@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { IssueHistoryReport, IssueStatus, SiteFinancialSummaryReport, StockValueReport } from "shared-types";
-import { apiFetch, ApiError } from "../../../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../../../lib/api";
 
 const STATUS_LABELS: Record<IssueStatus, string> = {
   PENDING_APPROVAL: "รออนุมัติ",
@@ -43,7 +42,7 @@ export default async function SiteFinancialDetailPage({
     ]);
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) redirect("/api/auth/logout");
+      if (err.status === 401) redirectToLogin();
       if (err.status === 403) {
         return <div className="empty-state">บัญชีนี้ไม่มีสิทธิ์ดูรายงานนี้ (ต้องเป็น accessLevel MANAGER หรือ ADMIN)</div>;
       }

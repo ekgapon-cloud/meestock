@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { Me, POStatus, PurchaseOrderListResponse } from "shared-types";
-import { apiFetch, ApiError } from "../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../lib/api";
 
 const STATUS_LABELS: Record<POStatus, string> = {
   DRAFT: "ร่าง",
@@ -44,7 +43,7 @@ export default async function PurchaseOrdersPage({
     ]);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      redirect("/api/auth/logout");
+      redirectToLogin();
     }
     throw err;
   }

@@ -1,6 +1,19 @@
+import { redirect } from "next/navigation";
 import { getSessionToken } from "./session";
 
 const API_URL = process.env.API_URL;
+
+/**
+ * Call on a 401 from apiFetch. Routes through /api/auth/logout (a Route Handler, which
+ * can mutate cookies) to clear the stale session cookie before landing on /login —
+ * redirect("/login") directly would leave the cookie in place, and middleware.ts (which
+ * only checks cookie presence, not validity) would bounce the user right back in, looping
+ * forever. Centralized here so new pages get the fix by construction instead of having to
+ * remember it.
+ */
+export function redirectToLogin(): never {
+  redirect("/api/auth/logout");
+}
 
 export class ApiError extends Error {
   readonly code: string;

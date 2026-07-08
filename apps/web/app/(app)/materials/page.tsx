@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { Category, MaterialListResponse } from "shared-types";
-import { apiFetch, ApiError } from "../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../lib/api";
 import { deactivateMaterialAction } from "./actions";
 
 function formatCurrency(value: string | number | null) {
@@ -34,7 +33,7 @@ export default async function MaterialsPage({
     ]);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      redirect("/api/auth/logout");
+      redirectToLogin();
     }
     throw err;
   }

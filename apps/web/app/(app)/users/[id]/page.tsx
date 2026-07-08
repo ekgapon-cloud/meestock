@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { AdminUser, Me, Warehouse } from "shared-types";
-import { apiFetch, ApiError } from "../../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { assignSiteAccessAction, revokeSiteAccessAction, updateUserAction } from "./actions";
 
 const ROLES = ["REQUESTER", "APPROVER", "WAREHOUSE", "EXECUTIVE", "PURCHASING"] as const;
@@ -29,7 +28,7 @@ export default async function UserDetailPage({
     ]);
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) redirect("/api/auth/logout");
+      if (err.status === 401) redirectToLogin();
       if (err.status === 403) {
         return <div className="empty-state">บัญชีนี้ไม่มีสิทธิ์เข้าถึงหน้านี้ (ต้องเป็น accessLevel ADMIN)</div>;
       }

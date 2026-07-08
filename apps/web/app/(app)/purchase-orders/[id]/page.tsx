@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { Me, POStatus, PurchaseOrder } from "shared-types";
-import { apiFetch, ApiError } from "../../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { Logo } from "../../../../components/Logo";
 import { DownloadPdfButton } from "../../DownloadPdfButton";
 import { cancelPurchaseOrderAction, markPurchaseOrderOrderedAction } from "./actions";
@@ -38,7 +37,7 @@ export default async function PurchaseOrderDetailPage({
     ]);
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) redirect("/api/auth/logout");
+      if (err.status === 401) redirectToLogin();
       if (err.status === 404) return <div className="empty-state">ไม่พบใบสั่งซื้อนี้</div>;
     }
     throw err;

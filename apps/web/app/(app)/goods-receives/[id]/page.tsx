@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { GoodsReceive } from "shared-types";
-import { apiFetch, ApiError } from "../../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { Logo } from "../../../../components/Logo";
 import { DownloadPdfButton } from "../../DownloadPdfButton";
 
@@ -19,7 +18,7 @@ export default async function GoodsReceiveDetailPage({ params }: { params: { id:
     goodsReceive = await apiFetch<GoodsReceive>(`/goods-receives/${params.id}`);
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) redirect("/api/auth/logout");
+      if (err.status === 401) redirectToLogin();
       if (err.status === 404) return <div className="empty-state">ไม่พบรายการรับวัสดุนี้</div>;
     }
     throw err;

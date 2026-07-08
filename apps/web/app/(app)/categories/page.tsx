@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
 import type { Category, Me } from "shared-types";
-import { apiFetch, ApiError } from "../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../lib/api";
 import { createCategoryAction, deleteCategoryAction, updateCategoryAction } from "./actions";
 
 export default async function CategoriesPage({ searchParams }: { searchParams: { error?: string } }) {
@@ -13,7 +12,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
     ]);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      redirect("/api/auth/logout");
+      redirectToLogin();
     }
     throw err;
   }

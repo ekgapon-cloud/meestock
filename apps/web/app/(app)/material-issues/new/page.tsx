@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { MaterialListResponse, Warehouse } from "shared-types";
-import { apiFetch, ApiError } from "../../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { createMaterialIssueAction } from "./actions";
 import { ItemsField } from "./ItemsField";
 
@@ -18,7 +17,7 @@ export default async function NewMaterialIssuePage({ searchParams }: { searchPar
     ]);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      redirect("/api/auth/logout");
+      redirectToLogin();
     }
     throw err;
   }

@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { GoodsReceiveListResponse, Me } from "shared-types";
-import { apiFetch, ApiError } from "../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../lib/api";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" });
@@ -20,7 +19,7 @@ export default async function GoodsReceivesPage({ searchParams }: { searchParams
     ]);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      redirect("/api/auth/logout");
+      redirectToLogin();
     }
     throw err;
   }

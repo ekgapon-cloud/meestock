@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
 import type { Me } from "shared-types";
-import { apiFetch, ApiError } from "../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../lib/api";
 import { LogoutButton } from "./LogoutButton";
 import { SidebarNav } from "./SidebarNav";
 
@@ -14,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     me = await apiFetch<Me>("/auth/me");
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      redirect("/api/auth/logout");
+      redirectToLogin();
     }
     throw err;
   }

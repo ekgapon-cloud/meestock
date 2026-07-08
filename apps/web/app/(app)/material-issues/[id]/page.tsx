@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { IssueStatus, Me, MaterialIssue } from "shared-types";
-import { apiFetch, ApiError } from "../../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { Logo } from "../../../../components/Logo";
 import { DownloadPdfButton } from "../../DownloadPdfButton";
 import { approveMaterialIssueAction, fulfillMaterialIssueAction, rejectMaterialIssueAction } from "./actions";
@@ -40,7 +39,7 @@ export default async function MaterialIssueDetailPage({
   } catch (err) {
     if (err instanceof ApiError) {
       if (err.status === 401) {
-        redirect("/api/auth/logout");
+        redirectToLogin();
       }
       if (err.status === 404) {
         return <div className="empty-state">ไม่พบคำขอเบิกนี้</div>;

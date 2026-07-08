@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { SiteFinancialSummaryReport } from "shared-types";
-import { apiFetch, ApiError } from "../../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(value);
@@ -21,7 +20,7 @@ export default async function SiteFinancialSummaryPage({
     report = await apiFetch<SiteFinancialSummaryReport>(`/reports/site-summary?${query.toString()}`);
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) redirect("/api/auth/logout");
+      if (err.status === 401) redirectToLogin();
       if (err.status === 403) {
         return <div className="empty-state">บัญชีนี้ไม่มีสิทธิ์ดูรายงานนี้ (ต้องเป็น accessLevel MANAGER หรือ ADMIN)</div>;
       }

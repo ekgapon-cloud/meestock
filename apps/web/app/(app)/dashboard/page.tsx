@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
 import type { ExecutiveDashboard } from "shared-types";
-import { apiFetch, ApiError } from "../../../lib/api";
+import { apiFetch, ApiError, redirectToLogin } from "../../../lib/api";
 import { Logo } from "../../../components/Logo";
 
 function formatCurrency(value: number) {
@@ -14,7 +13,7 @@ export default async function DashboardPage() {
   } catch (err) {
     if (err instanceof ApiError) {
       if (err.status === 401) {
-        redirect("/api/auth/logout");
+        redirectToLogin();
       }
       if (err.status === 403) {
         return (

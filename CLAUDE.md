@@ -34,7 +34,7 @@ Automated backend tests exist (Vitest, all passing). Don't assume anything in `d
 `pnpm run seed`: admin/storekeeper/requester/approver/executive/purchasing test accounts (`*@meestock.local`, passwords in `apps/api/prisma/seed.ts`), all on one seeded SITE warehouse w/ 500 units stock, plus a test `Supplier`.
 
 ## Commands
-pnpm workspaces (`apps/*`, `packages/*`), version pinned via `devEngines`.
+pnpm workspaces (`apps/*`, `packages/*`), version pinned via `packageManager` (root `package.json`) — **not** `devEngines.packageManager`, which triggers pnpm 11's self-management bootstrap and corrupts `pnpm-lock.yaml` into two concatenated YAML documents (broke the Railway build; root-caused 2026-07-08, see `memory.md`). Don't re-add it.
 ```bash
 pnpm install                     # from repo root
 

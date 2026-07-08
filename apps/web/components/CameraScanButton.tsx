@@ -1,12 +1,16 @@
 "use client";
 
-import { BrowserMultiFormatReader } from "@zxing/browser";
 import { useEffect, useRef, useState } from "react";
+import type { BrowserMultiFormatReader } from "@zxing/browser";
 
 /**
  * Camera-based barcode scan, as an alternative input path alongside the existing
  * HID-scanner-as-keyboard flow (see ItemsField/CostedItemsField) — for phones/tablets
  * with no external scanner hardware attached.
+ *
+ * `@zxing/browser` (~130KB) is only ever needed by the small fraction of visits that
+ * actually click this button, so it's dynamically imported on open rather than bundled
+ * into every page load of ItemsField/CostedItemsField.
  */
 export function CameraScanButton({ onDetected }: { onDetected: (code: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -20,26 +24,30 @@ export function CameraScanButton({ onDetected }: { onDetected: (code: string) =>
 
     let cancelled = false;
     setError(null);
-    const reader = new BrowserMultiFormatReader();
-    readerRef.current = reader;
 
-    reader
-      .decodeFromConstraints(
-        { video: { facingMode: "environment" } },
-        videoRef.current!,
-        (result, err) => {
-          if (cancelled) return;
-          if (result) {
-            onDetected(result.getText());
-            setOpen(false);
-          }
-          // NotFoundException fires continuously while no barcode is in frame — not a real error.
-          if (err && err.name !== "NotFoundException") {
-            setError("อ่านบาร์โค้ดไม่สำเร็จ ลองใหม่อีกครั้ง");
-          }
-        },
-      )
+    import("@zxing/browser")
+      .then(({ BrowserMultiFormatReader }) => {
+        if (cancelled) return undefined;
+        const reader = new BrowserMultiFormatReader();
+        readerRef.current = reader;
+        return reader.decodeFromConstraints(
+          { video: { facingMode: "environment" } },
+          videoRef.current!,
+          (result, err) => {
+            if (cancelled) return;
+            if (result) {
+              onDetected(result.getText());
+              setOpen(false);
+            }
+            // NotFoundException fires continuously while no barcode is in frame — not a real error.
+            if (err && err.name !== "NotFoundException") {
+              setError("อ่านบาร์โค้ดไม่สำเร็จ ลองใหม่อีกครั้ง");
+            }
+          },
+        );
+      })
       .then((controls) => {
+        if (!controls) return;
         if (cancelled) {
           controls.stop();
         } else {

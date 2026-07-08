@@ -113,6 +113,7 @@ export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
 export interface Approval {
   id: string;
   approverId: string;
+  approver: EmployeeRef;
   status: ApprovalStatus;
   approvedAt: string | null;
   note: string | null;

@@ -4,6 +4,8 @@ import type { IssueStatus, Me, MaterialIssue } from "shared-types";
 import { apiFetch, ApiError } from "../../../../lib/api";
 import { Logo } from "../../../../components/Logo";
 import { PrintButton } from "../../PrintButton";
+import { PrintLetterhead } from "../../../../components/PrintLetterhead";
+import { SignatureBlock } from "../../../../components/SignatureBlock";
 import { approveMaterialIssueAction, fulfillMaterialIssueAction, rejectMaterialIssueAction } from "./actions";
 
 const STATUS_LABELS: Record<IssueStatus, string> = {
@@ -59,6 +61,7 @@ export default async function MaterialIssueDetailPage({
 
   return (
     <div>
+      <PrintLetterhead />
       <div className="page-header">
         <div className="page-header-title">
           <Logo size={56} />
@@ -161,6 +164,15 @@ export default async function MaterialIssueDetailPage({
           )}
         </section>
       )}
+
+      <SignatureBlock
+        slots={[
+          { label: "ผู้ขอเบิก", name: issue.requester.name },
+          { label: "ผู้อนุมัติ", name: issue.approval?.approver.name },
+          { label: "ผู้จ่ายวัสดุ", name: issue.fulfilledBy?.name },
+          { label: "ผู้รับวัสดุ" },
+        ]}
+      />
 
       <p className="print-hide">
         <Link href="/material-issues">← กลับไปรายการคำขอ</Link>

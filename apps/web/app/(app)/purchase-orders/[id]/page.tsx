@@ -4,6 +4,8 @@ import type { Me, POStatus, PurchaseOrder } from "shared-types";
 import { apiFetch, ApiError } from "../../../../lib/api";
 import { Logo } from "../../../../components/Logo";
 import { PrintButton } from "../../PrintButton";
+import { PrintLetterhead } from "../../../../components/PrintLetterhead";
+import { SignatureBlock } from "../../../../components/SignatureBlock";
 import { cancelPurchaseOrderAction, markPurchaseOrderOrderedAction } from "./actions";
 
 const STATUS_LABELS: Record<POStatus, string> = {
@@ -50,6 +52,7 @@ export default async function PurchaseOrderDetailPage({
 
   return (
     <div>
+      <PrintLetterhead />
       <div className="page-header">
         <div className="page-header-title">
           <Logo size={56} />
@@ -116,6 +119,14 @@ export default async function PurchaseOrderDetailPage({
           )}
         </section>
       )}
+
+      <SignatureBlock
+        slots={[
+          { label: "ผู้จัดทำ", name: po.createdBy.name },
+          { label: "ผู้อนุมัติสั่งซื้อ" },
+          { label: "ผู้ตรวจสอบ" },
+        ]}
+      />
 
       <p className="print-hide">
         <Link href="/purchase-orders">← กลับไปรายการใบสั่งซื้อ</Link>

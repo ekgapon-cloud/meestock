@@ -9,7 +9,7 @@ const issueInclude = {
   fulfilledBy: { select: employeeRefSelect },
   warehouse: true,
   project: true,
-  approval: true,
+  approval: { include: { approver: { select: employeeRefSelect } } },
   items: { include: { material: true } },
 } satisfies Prisma.MaterialIssueInclude;
 

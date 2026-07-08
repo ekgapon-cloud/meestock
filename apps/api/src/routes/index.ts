@@ -1,0 +1,28 @@
+import { Router, type Router as RouterType } from "express";
+import { authRouter } from "./authRoutes.js";
+import { categoryRouter } from "./categoryRoutes.js";
+import { dashboardRouter } from "./dashboardRoutes.js";
+import { goodsReceiveRouter } from "./goodsReceiveRoutes.js";
+import { materialIssueRouter } from "./materialIssueRoutes.js";
+import { materialRouter } from "./materialRoutes.js";
+import { purchaseOrderRouter } from "./purchaseOrderRoutes.js";
+import { reportRouter } from "./reportRoutes.js";
+import { stockRouter } from "./stockRoutes.js";
+import { supplierRouter } from "./supplierRoutes.js";
+import { userRouter } from "./userRoutes.js";
+import { warehouseRouter } from "./warehouseRoutes.js";
+
+export const router: RouterType = Router();
+
+router.use("/auth", authRouter);
+router.use("/categories", categoryRouter);
+router.use("/materials", materialRouter);
+router.use("/stock", stockRouter);
+router.use("/material-issues", materialIssueRouter);
+router.use("/purchase-orders", purchaseOrderRouter);
+router.use("/goods-receives", goodsReceiveRouter);
+router.use("/reports", reportRouter);
+router.use("/dashboard", dashboardRouter);
+router.use("/users", userRouter);
+router.use("/warehouses", warehouseRouter);
+router.use("/suppliers", supplierRouter);

@@ -18,6 +18,7 @@ enum EmployeeRole {
   APPROVER // ผู้อนุมัติ
   WAREHOUSE // ผู้ดูแลคลัง
   EXECUTIVE // ผู้บริหาร
+  PURCHASING // ฝ่ายจัดซื้อ — คุมเฉพาะ Purchase Order, Goods Receive ยังคุมโดย WAREHOUSE
 }
 
 enum AccessLevel {
@@ -81,7 +82,11 @@ model Category {
 model Material {
   id           String    @id @default(cuid())
   code         String    @unique
+  /// Manufacturer/supplier barcode (EAN/UPC), distinct from `code` (our own SKU) — nullable until recorded.
+  barcode      String?   @unique
   name         String
+  /// Size/dimension variant (e.g. ขนาด "1/2\"") distinct from `name` — lets the same product name span multiple sizes as separate Materials.
+  size         String?
   categoryId   String
   category     Category  @relation(fields: [categoryId], references: [id])
   unit         String
@@ -91,6 +96,7 @@ model Material {
   reorderPoint Decimal?  @db.Decimal(12, 2)
   safetyStock  Decimal?  @db.Decimal(12, 2)
   leadTimeDays Int?
+  isActive     Boolean   @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -131,6 +137,7 @@ model Warehouse {
   transactions  StockTransaction[]
   transfersFrom StockTransfer[]    @relation("TransferFrom")
   transfersTo   StockTransfer[]    @relation("TransferTo")
+  siteAccess    UserSiteAccess[]
 }
 
 model Customer {
@@ -164,11 +171,16 @@ model Project {
 }
 
 model Employee {
-  id          String       @id @default(cuid())
-  name        String
-  role        EmployeeRole
-  accessLevel AccessLevel  @default(STAFF)
-  email       String?      @unique
+  id           String       @id @default(cuid())
+  name         String
+  role         EmployeeRole
+  accessLevel  AccessLevel  @default(STAFF)
+  email        String       @unique
+  passwordHash String
+  isActive     Boolean      @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   issuesRequested   MaterialIssue[]        @relation("Requester")
   issuesFulfilled   MaterialIssue[]        @relation("Fulfiller")
@@ -180,6 +192,21 @@ model Employee {
   stockCountsEdited StockCount[]           @relation("StockEditor")
   transactions      StockTransaction[]     @relation("TxPerformer")
   sellingPricesSet  ProjectMaterialPrice[] @relation("PriceSetter")
+  siteAccess        UserSiteAccess[]
+}
+
+// ---------- Access Control ----------
+
+model UserSiteAccess {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([employeeId, warehouseId])
+  @@index([warehouseId])
 }
 
 model ProjectMaterialPrice {
@@ -402,6 +429,7 @@ model StockTransaction {
   unitCost       Decimal         @db.Decimal(12, 2)
   refDocType     String
   refDocId       String
+  note           String?
   performedById  String
   performedBy    Employee        @relation("TxPerformer", fields: [performedById], references: [id])
   ipAddress      String?

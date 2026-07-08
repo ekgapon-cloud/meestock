@@ -1,0 +1,88 @@
+# CLAUDE.md
+
+Guidance for Claude Code in this repo.
+
+## Docs (read before working on a task)
+- `memory.md` — cross-session decisions, current phase. Read first.
+- `docs/requirements.md`, `docs/business-rules.md` — functional/business rules.
+- `docs/database-schema.md`, `docs/api-spec.md` — **outdated conceptual drafts** (old names: `User`/`Role`/`Site`/`StockLedger`/`MaterialIssueRequest`). `apps/api/prisma/schema.prisma` is the sole source of truth for the data model. Treat these docs as directional only.
+- `docs/deployment.md` — Vercel + Railway target.
+- `skills/*.md` (stock-management, purchasing, site-costing, reporting, security, testing, coding-standard) — read the relevant one before touching that area.
+
+## Current code state
+`apps/api`: Express+Prisma, layered `routes/→controllers/→services/→repositories/` (see `skills/coding-standard.md`). `app.ts` also has `helmet()`, CORS restricted via `CORS_ORIGIN` env var (comma-separated; unset = reflect any origin, dev-only), `POST /auth/login` rate-limited (`middleware/rateLimit.ts`, 10/15min per IP, successful logins don't count), and an unauthenticated `GET /health` outside the `/api/v1` prefix. Implemented:
+- **Auth**: JWT login/logout/me, bcrypt (`Employee.passwordHash`), role/access middleware.
+- **Materials**: full CRUD + soft delete (`Material.isActive`), plus `GET /materials/by-code/:code` (exact match, for barcode-scan lookups — `search` is fuzzy `contains` and unsuitable for that). The scan endpoint checks `Material.barcode` first (manufacturer EAN/UPC, nullable+`@unique`, populated as real supplier barcodes get recorded) then falls back to `Material.code` (our own SKU, always present) — so it transparently supports both a real barcode scan and manual/legacy code entry with no client-side branching (`materialService.ts#getMaterialByCode`). Both fields get independent duplicate-`CONFLICT` checks on create/update. Plus `/categories` (`GET` any authenticated user; `POST`/`PATCH`/`DELETE` gated `WAREHOUSE`, same duplicate-name `CONFLICT` pattern on both create and rename — `Category.name` has no DB-level `@unique`, checked at the service layer only. Delete blocked with `CONFLICT` if any `Material` still references the category — `categoryId` is a required, non-nullable FK, so this check runs before the DB would otherwise reject via the FK constraint anyway; counts *all* materials regardless of `isActive`, since even soft-deleted rows still hold the FK).
+- **Warehouses**: `GET /warehouses`, any authenticated user, site-visibility filtered (includes linked `project`).
+- **Suppliers**: `GET /suppliers`, any authenticated user, no site-visibility scoping (suppliers aren't site-specific).
+- **Stock ledger**: balance/history/receive/adjust. Ledger-only balance, non-negative rule, site-visibility filtering (`UserSiteAccess`).
+- **Material Issue**: `PENDING_APPROVAL→APPROVED→FULFILLED|PARTIALLY_FULFILLED` (or `REJECTED`). Requester can't self-approve (`FORBIDDEN_SELF_APPROVAL`). Fulfill creates `StockTransaction(ISSUE)` atomically via `$transaction`; tracks per-item shortfall (`isShortfall`/`shortfallNote`). Every response includes a computed `isOverdue` (badge-only SLA, no notifications) — `materialIssueService.ts#computeIsOverdue` compares now against `createdAt` (+`MATERIAL_ISSUE_APPROVAL_SLA_HOURS`, default 24) while `PENDING_APPROVAL`, or `approval.approvedAt` (+`MATERIAL_ISSUE_FULFILLMENT_SLA_DAYS`, default 3) while `APPROVED`; terminal states are never overdue. No schema field for this — derived at read time from existing timestamps.
+- **PO + Goods Receive**: PO status `DRAFT→ORDERED→CANCELLED` set manually; `PARTIALLY_RECEIVED`/`RECEIVED` derived automatically from `receivedQty` vs `orderedQty`. Goods receive creates `StockTransaction(RECEIVE)` + updates PO atomically; blocks over-receiving; supports no-PO receive (needs `supplierId`). PO create/status-update gated `PURCHASING`; goods-receive create stays gated `WAREHOUSE` (separate roles, added 2026-07-07 — `WAREHOUSE` can no longer create/manage POs).
+- **docNo generation** (`MI-`/`PO-`/`GR-` prefixes on MaterialIssue/PurchaseOrder/GoodsReceive): each service's `generateDocNo()` finds the highest existing docNo for today's date-prefix (`<repo>Repository.ts#findLatestDocNoWithPrefix`, `orderBy: docNo desc`) and increments its numeric suffix (`lib/docNoSequence.ts#extractDocNoSuffix`) — deliberately **not** a `COUNT(*)+1` of today's rows, which looks equivalent but silently breaks forever once any gap ever opens in the sequence (a failed create, a race) since a failed insert doesn't lower the count, so every later create recomputes the same already-used docNo and 500s indefinitely (this actually happened in dev, root-caused via a live Playwright run — see `memory.md`). Each create call is also wrapped in `lib/docNoRetry.ts#createWithDocNoRetry`, which retries on a P2002 docNo collision (genuine race between two concurrent requests reading the same MAX) — the two fixes are complementary, not redundant.
+- **Reporting**: `/reports/stock-value`, `/reports/issue-history`, `/dashboard/executive`. Stock value replays full `StockTransaction` history per (material, warehouse) for true weighted-avg cost — no cached avg-cost column, naive averaging is wrong once an issue occurs between receives (`skills/site-costing.md`). Gated `MANAGER|ADMIN`.
+- **Cost visibility**: `STAFF` never sees cost data (`Employee.accessLevel` enum comment). Enforced two ways: reports/dashboard gate the whole endpoint (`MANAGER|ADMIN` only); stock-ledger and material-issue endpoints stay open to all authenticated users but redact `unitCost`/`standardCost` to `null` at the **controller** layer via `services/costVisibilityService.ts#canViewCost`/`redactCost`/`redactIssueCost` — deliberately not threaded through the service layer, to avoid touching the service-level test call sites in `stockLedger.test.ts`/`materialIssueWorkflow.test.ts`.
+- **Access Control admin**: `/users` CRUD, role/site-access endpoints, gated `ADMIN` only (accessLevel dimension, separate from `role`). `employeeRepository` uses Prisma `select` (not `include`) to exclude `passwordHash`. Self-lockout guard: admin can't demote own accessLevel below `ADMIN` or deactivate own account.
+- **`passwordHash` leak gotcha**: any Prisma `include` of an `Employee` relation (requester, createdBy, performedBy, fulfilledBy, ...) with a bare `true` pulls back `passwordHash` too — it only gets excluded via explicit `select`. Always write `relationName: { select: employeeRefSelect }` (exported from `employeeRepository.ts`) for new/existing Employee relations, never `relationName: true`. This was actually leaking in production code via material-issue/purchase-order/goods-receive/stock-ledger endpoints until fixed — see `memory.md` for the incident.
+
+`apps/web`: Next.js 14 App Router (no `src/` dir), started. Auth is a BFF pattern — Next route handler (`app/api/auth/login`) calls backend `/auth/login` and stores the JWT in an httpOnly cookie server-side; browser JS never sees the token. All data fetching happens in Server Components/Route Handlers/Server Actions via `lib/api.ts#apiFetch` (reads cookie, attaches `Authorization` header, throws `ApiError` — server-only, can't be called from Client Components). `middleware.ts` only checks cookie presence to gate `/login` vs. protected routes — real verification happens at the backend on every request. Pages so far: `/login`, protected shell layout+nav, `/dashboard`, `/materials` (list/search/pagination/deactivate/create, category `<select>` from `/categories`), `/categories` (single-page CRUD — dedicated management UI, not just the dropdown source: create form + per-row inline rename + delete, all on one page since the entity is just a name; nav link visible to everyone since `GET` is open to all, but the create/rename/delete forms only render when `me.accessLevel === "ADMIN" || me.role === "WAREHOUSE"` — a non-managing role gets the same page as a plain read-only list, not a 403), `/material-issues` (list+tabs, create with barcode-scan-to-add via `ItemsField` + `/api/materials/by-code/[code]` proxy route, detail with role+status-aware Approve/Reject/Fulfill hidden entirely for the requester's own request), `/purchase-orders` (list+tabs, create with `components/CostedItemsField` — same barcode/manual pattern as `ItemsField` plus a unitCost column, shared with goods-receive's no-PO path — detail with Mark-Ordered/Cancel buttons gated by the backend's `ALLOWED_TRANSITIONS`). Both `ItemsField`/`CostedItemsField` also have a `components/CameraScanButton.tsx` option (`@zxing/browser`, opens a full-screen `getUserMedia` overlay preferring the rear camera) next to the keyboard-input scan field — additive only, doesn't replace the HID-scanner-as-keyboard path; both paths funnel through one shared `lookupAndAdd(code)` per field, `/goods-receives` (list, create — a GET-method mini-form for warehouse+PO selection needs no JS at all, just re-navigates with query params; when a PO is selected the item rows are a **fixed** server-rendered table of that PO's remaining-qty items, not a free picker, since the backend rejects materials not on the referenced PO; with no PO it's the same `CostedItemsField` pattern, detail page), `/reports` (small index linking the two reports below, instead of cluttering the top nav further), `/reports/stock-value` and `/reports/issue-history` (both pure Server Components — GET-only filters via native forms, no Server Actions, no unbound-action-curl caveat; `MaterialIssue` type reused as-is since `/reports/issue-history` returns the same shape as `/material-issues`), `/users` + `/users/new` + `/users/[id]` (admin CRUD + site-access management, nav link only shown when `me.accessLevel === "ADMIN"`; self-lockout guard mirrored in the UI — the accessLevel `<select>` and `isActive` checkbox are `disabled` outright when viewing your own account, not just rejected server-side). Also has print support (`PrintButton` + `@media print` CSS) on the material-issue/PO/goods-receive detail pages, and a responsive layout (`@media` breakpoints at 900px/600px in `app/globals.css`, no JS) — sidebar collapses to a horizontally-scrollable icon bar, tables become horizontally scrollable, bento/two-col grids reflow to fewer columns.
+- **Server Action wire-format gotcha**: bound actions (`someAction.bind(null, id)` — note: this includes actions still taking real `FormData` as their last param, e.g. `assignSiteAccessAction(id, formData)` bound via `.bind(null, user.id)`; the deciding factor is whether `.bind()` was used at all, not whether all params ended up bound) are reliably invokable via a raw curl multipart POST for manual verification. Plain/unbound actions taking `FormData` directly with no `.bind()` (`createMaterialAction`, `createMaterialIssueAction`, `createPurchaseOrderAction`, `createUserAction`) are **not** — curl-simulating the no-JS form fallback hits "Failed to find Server Action" even against a clean production build, traced to Next 14.2.35's own runtime and reproducible only through that fallback path (real browsers with JS use a different, header-based resolution that isn't affected). Prefer binding at least the id on any action for an existing record; for actions needing full `FormData` from a brand-new-record form (nothing to bind yet), verify by replicating the action's logic directly against the backend instead of fighting curl. Full trace in `PLAN.md`.
+
+`packages/shared-types`: type-only DTO package consumed by `apps/web` (`Me`, `ExecutiveDashboard`, `Material`, `MaterialListResponse`, etc). No build step — `package.json`'s `types`/`exports` point straight at `src/index.ts`, and it's a single file with no internal relative imports (deliberately, to dodge `apps/web`'s `bundler` vs. `apps/api`'s `nodenext` moduleResolution mismatch). Always `import type` from it so it's erased at compile time. Not wired into `apps/api` yet — controllers still rely on Prisma-inferred types.
+
+Automated backend tests exist (Vitest, all passing). Don't assume anything in `docs/`/`skills/` exists in code beyond what's listed above.
+
+`pnpm run seed`: admin/storekeeper/requester/approver/executive/purchasing test accounts (`*@meestock.local`, passwords in `apps/api/prisma/seed.ts`), all on one seeded SITE warehouse w/ 500 units stock, plus a test `Supplier`.
+
+## Commands
+pnpm workspaces (`apps/*`, `packages/*`), version pinned via `devEngines`.
+```bash
+pnpm install                     # from repo root
+
+cd apps/api
+npx prisma generate              # after schema changes
+npx prisma migrate dev --name x  # new local migration
+npx prisma migrate deploy        # prod (Railway)
+
+pnpm run dev        # tsx watch, port $PORT (default 4000)
+pnpm run build       # tsc -> dist/
+pnpm run typecheck
+pnpm run seed
+pnpm run test        # vitest, integration tests
+
+cd ../web
+cp .env.local.example .env.local  # set API_URL (server-only, no NEXT_PUBLIC_ prefix)
+pnpm run dev         # next dev -p 3000
+pnpm run build       # next build
+pnpm run typecheck
+```
+**Tests**: use `TEST_DATABASE_URL` (not `DATABASE_URL`) — `src/test/setupEnv.ts` redirects it. `resetDatabase` truncates all tables between tests; must be a disposable DB. Serial execution (`fileParallelism: false`), shared DB. One-time setup:
+```bash
+docker exec <pg-container> psql -U meestock -d meestock_dev -c "CREATE DATABASE meestock_test;"
+cd apps/api && DATABASE_URL="$TEST_DATABASE_URL" npx prisma migrate deploy
+```
+`packages/shared-types`: no scripts yet.
+
+## Next.js auth gotcha
+`app/api/auth/login/route.ts` sets the session as an **httpOnly cookie holding the backend's JWT verbatim** (no re-signing) — `lib/session.ts` wraps `next/headers` `cookies()` for this, which only works in Server Components/Route Handlers/Server Actions. `middleware.ts` runs in the Edge runtime and cannot import `next/headers`, so the cookie name is factored out into `lib/constants.ts` (no `next/headers` import) and imported separately by both — don't merge that constant back into `lib/session.ts` or middleware will fail to build.
+
+## Prisma gotcha
+`schema.prisma` datasource has no `url` — supplied by `apps/api/prisma.config.ts` (Prisma 7 config-file datasource, reads `DATABASE_URL`). CLI commands must run from `apps/api`. This config file is **CLI-only**, not read by `PrismaClient` at runtime — app code needs an explicit adapter (Prisma 7 dropped the old `datasources` constructor option):
+```ts
+import { PrismaPg } from "@prisma/adapter-pg";
+const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
+```
+`new PrismaClient()` with no adapter throws at first use.
+
+## Data model architecture
+- **Ledger-based balance**: `StockTransaction` is sole source of truth (signed `quantityChange` per material+warehouse), never a mutable balance column. Every stock-affecting action inserts a row in the same DB transaction. `refDocType`/`refDocId` point polymorphically to the causing document.
+- **Material issue state machine**: `PENDING_APPROVAL→APPROVED→FULFILLED` (or `REJECTED`/`PARTIALLY_FULFILLED`), gated by 1:1 `Approval`. Never skip or mutate status outside this flow.
+- **Warehouse = site concept**: `Warehouse.type` is `CENTRAL|SITE|TEMPORARY`, optional `projectId`; `SITE` warehouse → one `Project` → `Customer`. No separate `Site` table (unlike `docs/database-schema.md`).
+- **2D access control**: `Employee.role` (`REQUESTER|APPROVER|WAREHOUSE|EXECUTIVE|PURCHASING`) = action permission (`middleware/requireRole.ts`; `accessLevel:ADMIN` bypasses). `PURCHASING` gates only Purchase Order create/status-update — Goods Receive stays gated by `WAREHOUSE` (receiving is a physical warehouse action, separate from ordering). `Employee.accessLevel` (`STAFF|MANAGER|ADMIN`) = data visibility; `UserSiteAccess` records allowed warehouses; `accessControlService#getAccessibleWarehouseIds` returns `null` (admin, unrestricted) or explicit id list — every stock query/mutation must filter by it (pattern in `stockLedgerService.ts`).
+- **Costing**: weighted-average, captured per-transaction (`unitCost`/`standardCost`), never recomputed from current price (`skills/site-costing.md`).
+- `ProjectCost`/`ProjectRevenue`: Phase 2, unused.
+
+## Conventions
+- TS strict mode; `nodenext`/ESM (`verbatimModuleSyntax`, `isolatedModules`) — relative imports need explicit `.js`.
+- Prisma schema = source of truth; all changes via `prisma migrate dev`, never manual DB edits or editing applied migrations.
+- Full naming/layering/commit conventions: `skills/coding-standard.md`.

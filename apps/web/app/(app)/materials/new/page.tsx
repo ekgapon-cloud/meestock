@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Category } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
+import { BarcodeField } from "./BarcodeField";
 import { createMaterialAction } from "./actions";
 
 export default async function NewMaterialPage({ searchParams }: { searchParams: { error?: string } }) {
@@ -27,7 +28,7 @@ export default async function NewMaterialPage({ searchParams }: { searchParams: 
 
         <label>
           บาร์โค้ด (ถ้ามี)
-          <input type="text" name="barcode" />
+          <BarcodeField />
         </label>
 
         <label>

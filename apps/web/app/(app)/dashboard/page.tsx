@@ -85,10 +85,20 @@ export default async function DashboardPage() {
             <p className="empty-state">ไม่มีข้อมูล</p>
           ) : (
             <div className="bento-list">
+              <div className="bento-list-header">
+                <span>วัสดุ</span>
+                <div className="bento-list-row-values">
+                  <span>เบิกแล้ว</span>
+                  <span>คงเหลือ</span>
+                </div>
+              </div>
               {dashboard.topIssuedMaterials.map((m) => (
                 <div className="bento-list-row" key={m.materialId}>
                   <span>{m.materialName ?? m.materialId}</span>
-                  <span>{m.issuedQty}</span>
+                  <div className="bento-list-row-values">
+                    <span>{m.issuedQty}</span>
+                    <span>{m.remainingQty}</span>
+                  </div>
                 </div>
               ))}
             </div>

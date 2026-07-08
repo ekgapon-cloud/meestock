@@ -288,6 +288,7 @@ export interface ExecutiveDashboard {
     materialCode: string | null;
     materialName: string | null;
     issuedQty: number;
+    remainingQty: number;
   }[];
   topCostSites: { warehouseId: string; warehouseName: string | null; cost: number }[];
   lowStockMaterials: {

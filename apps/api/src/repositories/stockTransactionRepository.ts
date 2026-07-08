@@ -16,6 +16,14 @@ export function groupBalanceByMaterialWarehouse(where: Prisma.StockTransactionWh
   });
 }
 
+export function groupBalanceByMaterial(where: Prisma.StockTransactionWhereInput) {
+  return prisma.stockTransaction.groupBy({
+    by: ["materialId"],
+    where,
+    _sum: { quantityChange: true },
+  });
+}
+
 export function findTransactions(where: Prisma.StockTransactionWhereInput, skip: number, take: number) {
   return prisma.stockTransaction.findMany({
     where,

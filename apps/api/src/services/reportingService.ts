@@ -9,6 +9,7 @@ import {
 import {
   findIssueTransactionsForCosting,
   findTransactionsForCostReplay,
+  groupBalanceByMaterial,
   groupBalanceByMaterialWarehouse,
   groupIssuedQuantityByMaterial,
 } from "../repositories/stockTransactionRepository.js";
@@ -178,11 +179,21 @@ async function getTopIssuedMaterials(accessibleWarehouseIds: string[] | null, li
   const groups = await groupIssuedQuantityByMaterial(where, limit);
   const materials = await Promise.all(groups.map((group) => findMaterialById(group.materialId)));
 
+  // Remaining balance across the same accessible warehouses (ledger-wide, not just issues).
+  const balanceGroups = await groupBalanceByMaterial({
+    ...where,
+    materialId: { in: groups.map((group) => group.materialId) },
+  });
+  const balanceByMaterialId = new Map(
+    balanceGroups.map((group) => [group.materialId, Number(group._sum.quantityChange ?? 0)]),
+  );
+
   return groups.map((group, index) => ({
     materialId: group.materialId,
     materialCode: materials[index]?.code ?? null,
     materialName: materials[index]?.name ?? null,
     issuedQty: Math.abs(Number(group._sum.quantityChange ?? 0)),
+    remainingQty: balanceByMaterialId.get(group.materialId) ?? 0,
   }));
 }
 

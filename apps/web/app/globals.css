@@ -375,6 +375,29 @@ button:disabled {
   white-space: nowrap;
 }
 
+.bento-list-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.3rem;
+}
+
+.bento-list-row-values {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.bento-list-row-values span {
+  min-width: 3rem;
+  text-align: right;
+  color: var(--color-text-muted);
+}
+
 .page-header {
   display: flex;
   align-items: center;

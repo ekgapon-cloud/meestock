@@ -21,7 +21,7 @@ export default async function SiteFinancialSummaryPage({
     report = await apiFetch<SiteFinancialSummaryReport>(`/reports/site-summary?${query.toString()}`);
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) redirect("/login");
+      if (err.status === 401) redirect("/api/auth/logout");
       if (err.status === 403) {
         return <div className="empty-state">บัญชีนี้ไม่มีสิทธิ์ดูรายงานนี้ (ต้องเป็น accessLevel MANAGER หรือ ADMIN)</div>;
       }

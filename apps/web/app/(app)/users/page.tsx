@@ -23,7 +23,7 @@ export default async function UsersPage({
     data = await apiFetch<AdminUserListResponse>(`/users?${query.toString()}`);
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) redirect("/login");
+      if (err.status === 401) redirect("/api/auth/logout");
       if (err.status === 403) {
         return <div className="empty-state">บัญชีนี้ไม่มีสิทธิ์เข้าถึงหน้านี้ (ต้องเป็น accessLevel ADMIN)</div>;
       }

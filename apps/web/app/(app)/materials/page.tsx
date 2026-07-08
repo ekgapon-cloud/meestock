@@ -34,7 +34,7 @@ export default async function MaterialsPage({
     ]);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      redirect("/login");
+      redirect("/api/auth/logout");
     }
     throw err;
   }

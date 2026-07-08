@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   } catch (err) {
     if (err instanceof ApiError) {
       if (err.status === 401) {
-        redirect("/login");
+        redirect("/api/auth/logout");
       }
       if (err.status === 403) {
         return (

@@ -38,7 +38,7 @@ export default async function PurchaseOrderDetailPage({
     ]);
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) redirect("/login");
+      if (err.status === 401) redirect("/api/auth/logout");
       if (err.status === 404) return <div className="empty-state">ไม่พบใบสั่งซื้อนี้</div>;
     }
     throw err;

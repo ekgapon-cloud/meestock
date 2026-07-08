@@ -40,7 +40,7 @@ export default async function MaterialIssueDetailPage({
   } catch (err) {
     if (err instanceof ApiError) {
       if (err.status === 401) {
-        redirect("/login");
+        redirect("/api/auth/logout");
       }
       if (err.status === 404) {
         return <div className="empty-state">ไม่พบคำขอเบิกนี้</div>;

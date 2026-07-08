@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     me = await apiFetch<Me>("/auth/me");
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      redirect("/login");
+      redirect("/api/auth/logout");
     }
     throw err;
   }

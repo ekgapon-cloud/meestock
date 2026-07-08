@@ -19,7 +19,7 @@ export default async function GoodsReceiveDetailPage({ params }: { params: { id:
     goodsReceive = await apiFetch<GoodsReceive>(`/goods-receives/${params.id}`);
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) redirect("/login");
+      if (err.status === 401) redirect("/api/auth/logout");
       if (err.status === 404) return <div className="empty-state">ไม่พบรายการรับวัสดุนี้</div>;
     }
     throw err;

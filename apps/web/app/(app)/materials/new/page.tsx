@@ -10,7 +10,7 @@ export default async function NewMaterialPage({ searchParams }: { searchParams: 
     categories = await apiFetch<Category[]>("/categories");
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
-      redirect("/login");
+      redirect("/api/auth/logout");
     }
     throw err;
   }

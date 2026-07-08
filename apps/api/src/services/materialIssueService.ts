@@ -32,7 +32,7 @@ const DAY_MS = 24 * HOUR_MS;
  * existing timestamps at read time, so it never needed a schema migration. PENDING_APPROVAL
  * ages off `createdAt`; APPROVED ages off `approval.approvedAt`. Terminal states are never overdue.
  */
-function computeIsOverdue<
+export function computeIsOverdue<
   T extends { status: string; createdAt: Date; approval: { approvedAt: Date | null } | null },
 >(issue: T): boolean {
   const now = Date.now();

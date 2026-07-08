@@ -1,4 +1,4 @@
-import type { ExecutiveDashboard } from "shared-types";
+import type { ExecutiveDashboard, IssueStatus, Me, StaffDashboard } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../lib/api";
 import { Logo } from "../../../components/Logo";
 
@@ -6,15 +6,37 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(value);
 }
 
+const STATUS_LABELS: Record<IssueStatus, string> = {
+  PENDING_APPROVAL: "รออนุมัติ",
+  APPROVED: "อนุมัติแล้ว",
+  REJECTED: "ปฏิเสธ",
+  PARTIALLY_FULFILLED: "จ่ายบางส่วน",
+  FULFILLED: "จ่ายครบแล้ว",
+};
+
+function isExecutiveViewer(me: Me) {
+  return me.role === "EXECUTIVE" && (me.accessLevel === "MANAGER" || me.accessLevel === "ADMIN");
+}
+
 export default async function DashboardPage() {
+  let me: Me;
+  try {
+    me = await apiFetch<Me>("/auth/me");
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) redirectToLogin();
+    throw err;
+  }
+
+  return isExecutiveViewer(me) ? <ExecutiveDashboardSection /> : <StaffDashboardSection />;
+}
+
+async function ExecutiveDashboardSection() {
   let dashboard: ExecutiveDashboard;
   try {
     dashboard = await apiFetch<ExecutiveDashboard>("/dashboard/executive");
   } catch (err) {
     if (err instanceof ApiError) {
-      if (err.status === 401) {
-        redirectToLogin();
-      }
+      if (err.status === 401) redirectToLogin();
       if (err.status === 403) {
         return (
           <div className="empty-state">
@@ -146,6 +168,143 @@ export default async function DashboardPage() {
           </table>
         )}
       </section>
+
+      <section>
+        <h2>วัสดุต่ำกว่าจุดสั่งซื้อ</h2>
+        {dashboard.lowStockMaterials.length === 0 ? (
+          <p className="empty-state">ไม่มีวัสดุต่ำกว่าจุดสั่งซื้อ</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>วัสดุ</th>
+                <th>คงเหลือ</th>
+                <th>จุดสั่งซื้อ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dashboard.lowStockMaterials.map((m, i) => (
+                <tr key={`${m.materialId}-${m.warehouseId}-${i}`}>
+                  <td>{m.materialName}</td>
+                  <td>{m.balance}</td>
+                  <td>{m.reorderPoint}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    </div>
+  );
+}
+
+async function StaffDashboardSection() {
+  let dashboard: StaffDashboard;
+  try {
+    dashboard = await apiFetch<StaffDashboard>("/dashboard/staff");
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) redirectToLogin();
+    throw err;
+  }
+
+  const statusEntries = Object.entries(dashboard.issueStatusBreakdownThisMonth);
+
+  return (
+    <div>
+      <div className="page-header-title" style={{ marginBottom: "1rem" }}>
+        <Logo variant="icon" size={44} />
+        <h1>แดชบอร์ด</h1>
+      </div>
+
+      <h2>สัปดาห์ที่ผ่านมา</h2>
+      <div className="stat-grid">
+        <div className="stat-tile">
+          <div className="stat-label">ใบเบิกวัสดุ</div>
+          <div className="stat-value">{dashboard.issuesThisWeek}</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-label">ใบรับวัสดุ</div>
+          <div className="stat-value">{dashboard.receivesThisWeek}</div>
+        </div>
+      </div>
+
+      <h2>เดือนที่ผ่านมา</h2>
+      <div className="stat-grid">
+        <div className="stat-tile">
+          <div className="stat-label">ใบเบิกวัสดุ</div>
+          <div className="stat-value">{dashboard.issuesThisMonth}</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-label">ใบรับวัสดุ</div>
+          <div className="stat-value">{dashboard.receivesThisMonth}</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-label">ต่ำกว่าจุดสั่งซื้อ</div>
+          <div className="stat-value">{dashboard.lowStockCount} รายการ</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-label">ใบเบิกเกินกำหนด</div>
+          <div className="stat-value">{dashboard.overdueIssuesCount} รายการ</div>
+        </div>
+      </div>
+
+      <div className="bento-grid">
+        <div className="bento-card bento-card-wide">
+          <div className="stat-label" style={{ marginBottom: "0.5rem" }}>
+            สถานะใบเบิกในเดือนนี้
+          </div>
+          {statusEntries.length === 0 ? (
+            <p className="empty-state">ไม่มีข้อมูล</p>
+          ) : (
+            <div className="bento-list">
+              {statusEntries.map(([status, count]) => (
+                <div className="bento-list-row" key={status}>
+                  <span className={`status-badge status-${status.toLowerCase()}`}>
+                    {STATUS_LABELS[status as IssueStatus] ?? status}
+                  </span>
+                  <span>{count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bento-card bento-card-wide">
+          <div className="stat-label" style={{ marginBottom: "0.5rem" }}>
+            วัสดุที่เบิกมากที่สุด (สัปดาห์นี้)
+          </div>
+          {dashboard.topIssuedMaterialsThisWeek.length === 0 ? (
+            <p className="empty-state">ไม่มีข้อมูล</p>
+          ) : (
+            <div className="bento-list">
+              {dashboard.topIssuedMaterialsThisWeek.map((m) => (
+                <div className="bento-list-row" key={m.materialId}>
+                  <span>{m.materialName ?? m.materialId}</span>
+                  <span>{m.issuedQty}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bento-card bento-card-wide">
+          <div className="stat-label" style={{ marginBottom: "0.5rem" }}>
+            วัสดุที่เบิกมากที่สุด (เดือนนี้)
+          </div>
+          {dashboard.topIssuedMaterialsThisMonth.length === 0 ? (
+            <p className="empty-state">ไม่มีข้อมูล</p>
+          ) : (
+            <div className="bento-list">
+              {dashboard.topIssuedMaterialsThisMonth.map((m) => (
+                <div className="bento-list-row" key={m.materialId}>
+                  <span>{m.materialName ?? m.materialId}</span>
+                  <span>{m.issuedQty}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       <section>
         <h2>วัสดุต่ำกว่าจุดสั่งซื้อ</h2>

@@ -6,6 +6,7 @@ import {
   findIssues,
   groupIssuesByStatus,
 } from "../repositories/materialIssueRepository.js";
+import { countGoodsReceives } from "../repositories/goodsReceiveRepository.js";
 import {
   findTransactionsByTypeForCosting,
   findTransactionsForCostReplay,
@@ -16,6 +17,7 @@ import {
 import { findWarehouses, findWarehousesByIds } from "../repositories/warehouseRepository.js";
 import type { IssueHistoryQuery, SiteFinancialSummaryQuery, StockValueQuery } from "../validation/reportingSchema.js";
 import { assertWarehouseAccessible } from "./accessControlService.js";
+import { computeIsOverdue } from "./materialIssueService.js";
 
 export interface CostReplayInput {
   quantityChange: Prisma.Decimal | number;
@@ -350,5 +352,80 @@ export async function getExecutiveDashboard(accessibleWarehouseIds: string[] | n
     topIssuedMaterials,
     topCostSites,
     lowStockMaterials,
+  };
+}
+
+async function getTopIssuedMaterialsSince(accessibleWarehouseIds: string[] | null, since: Date, limit = 5) {
+  const where: Prisma.StockTransactionWhereInput = {
+    date: { gte: since },
+    ...(accessibleWarehouseIds ? { warehouseId: { in: accessibleWarehouseIds } } : {}),
+  };
+  const groups = await groupIssuedQuantityByMaterial(where, limit);
+  const materials = await Promise.all(groups.map((group) => findMaterialById(group.materialId)));
+
+  return groups.map((group, index) => ({
+    materialId: group.materialId,
+    materialCode: materials[index]?.code ?? null,
+    materialName: materials[index]?.name ?? null,
+    issuedQty: Math.abs(Number(group._sum.quantityChange ?? 0)),
+  }));
+}
+
+/**
+ * The general-purpose dashboard for every authenticated user (unlike /dashboard/executive,
+ * gated to role EXECUTIVE + accessLevel MANAGER/ADMIN) — deliberately excludes every cost/value
+ * field so it's safe for STAFF accessLevel to see (see costVisibilityService), and windows
+ * everything to the trailing week/month rather than all-time totals.
+ */
+export async function getStaffDashboard(accessibleWarehouseIds: string[] | null) {
+  const now = new Date();
+  const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const monthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const issueWarehouseFilter: Prisma.MaterialIssueWhereInput = accessibleWarehouseIds
+    ? { warehouseId: { in: accessibleWarehouseIds } }
+    : {};
+  const receiveWarehouseFilter: Prisma.GoodsReceiveWhereInput = accessibleWarehouseIds
+    ? { warehouseId: { in: accessibleWarehouseIds } }
+    : {};
+
+  const [
+    issuesThisWeek,
+    issuesThisMonth,
+    receivesThisWeek,
+    receivesThisMonth,
+    issueStatusGroups,
+    topIssuedMaterialsThisWeek,
+    topIssuedMaterialsThisMonth,
+    lowStockMaterials,
+    openIssues,
+  ] = await Promise.all([
+    countIssues({ ...issueWarehouseFilter, createdAt: { gte: weekStart } }),
+    countIssues({ ...issueWarehouseFilter, createdAt: { gte: monthStart } }),
+    countGoodsReceives({ ...receiveWarehouseFilter, createdAt: { gte: weekStart } }),
+    countGoodsReceives({ ...receiveWarehouseFilter, createdAt: { gte: monthStart } }),
+    groupIssuesByStatus({ ...issueWarehouseFilter, createdAt: { gte: monthStart } }),
+    getTopIssuedMaterialsSince(accessibleWarehouseIds, weekStart),
+    getTopIssuedMaterialsSince(accessibleWarehouseIds, monthStart),
+    getLowStockMaterials(accessibleWarehouseIds),
+    findIssues({ ...issueWarehouseFilter, status: { in: ["PENDING_APPROVAL", "APPROVED"] } }, 0, 10000),
+  ]);
+
+  const overdueIssuesCount = openIssues.filter((issue) => computeIsOverdue(issue)).length;
+
+  return {
+    weekStart: weekStart.toISOString(),
+    monthStart: monthStart.toISOString(),
+    issuesThisWeek,
+    issuesThisMonth,
+    receivesThisWeek,
+    receivesThisMonth,
+    issueStatusBreakdownThisMonth: Object.fromEntries(
+      issueStatusGroups.map((group) => [group.status, group._count._all]),
+    ),
+    topIssuedMaterialsThisWeek,
+    topIssuedMaterialsThisMonth,
+    lowStockCount: lowStockMaterials.length,
+    lowStockMaterials,
+    overdueIssuesCount,
   };
 }

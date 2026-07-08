@@ -305,6 +305,27 @@ export interface ExecutiveDashboard {
   }[];
 }
 
+export interface StaffDashboard {
+  weekStart: string;
+  monthStart: string;
+  issuesThisWeek: number;
+  issuesThisMonth: number;
+  receivesThisWeek: number;
+  receivesThisMonth: number;
+  issueStatusBreakdownThisMonth: Record<string, number>;
+  topIssuedMaterialsThisWeek: { materialId: string; materialCode: string | null; materialName: string | null; issuedQty: number }[];
+  topIssuedMaterialsThisMonth: { materialId: string; materialCode: string | null; materialName: string | null; issuedQty: number }[];
+  lowStockCount: number;
+  lowStockMaterials: {
+    materialId: string;
+    materialName: string;
+    warehouseId: string;
+    balance: number;
+    reorderPoint: number;
+  }[];
+  overdueIssuesCount: number;
+}
+
 export interface SiteFinancialSummary {
   warehouseId: string;
   warehouseName: string;

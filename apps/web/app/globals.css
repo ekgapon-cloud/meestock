@@ -1,18 +1,25 @@
 :root {
-  --color-bg: #f7f8fa;
+  /* Warm, soft canvas behind content cards — easier on the eyes over long sessions
+     than a stark cool-gray background; content cards (--color-surface) stay pure
+     white for data legibility. */
+  --color-bg: #faf8f5;
   --color-surface: #ffffff;
-  --color-border: #e2e5ea;
+  --color-border: #e7e1d8;
   --color-text: #1a1d23;
-  --color-text-muted: #667085;
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-bg: rgba(37, 99, 235, 0.1);
+  --color-text-muted: #6b6459;
+  /* Brand colors sampled directly from the M.EE Engineering logo (gold gear + red
+     wordmark). Status badge colors are intentionally untouched — see below. */
+  --color-primary: #cc0812;
+  --color-primary-hover: #a50710;
+  --color-primary-bg: rgba(204, 8, 18, 0.1);
+  --color-gold: #fdbc02;
+  --color-gold-bg: rgba(253, 188, 2, 0.16);
+  --color-gold-bg-strong: rgba(253, 188, 2, 0.24);
+  /* NOTE: --color-danger/--color-danger-bg are shared with the rejected/cancelled
+     status badges further down — do not change these to keep status colors as-is. */
   --color-danger: #dc2626;
   --color-danger-bg: #fef2f2;
-  --color-brick: 178, 58, 36;
-  --color-brick-bg: rgba(178, 58, 36, 0.5);
-  --color-brick-dark: #5c1f12;
-  --color-bar: #d3d7dd;
+  --color-bar: #ddd3c2;
   --radius: 8px;
   --sidebar-w: 150px;
 }
@@ -61,7 +68,7 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-brick-bg);
+  background: var(--color-gold-bg-strong);
 }
 
 .login-form {
@@ -214,7 +221,8 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.6rem;
+  padding: 0.5rem 0.6rem 0.5rem calc(0.6rem - 3px);
+  border-left: 3px solid transparent;
   border-radius: var(--radius);
   font-size: 0.85rem;
   color: var(--color-text-muted);
@@ -228,6 +236,7 @@ button:disabled {
 .sidebar-link-active {
   background: var(--color-primary-bg);
   color: var(--color-primary);
+  border-left-color: var(--color-gold);
   font-weight: 600;
 }
 
@@ -394,8 +403,8 @@ td {
 }
 
 th {
-  background: var(--color-brick-bg);
-  color: var(--color-brick-dark);
+  background: var(--color-gold-bg);
+  color: var(--color-primary);
   font-weight: 600;
 }
 

@@ -2,11 +2,21 @@
 
 ## ภาพรวม
 
-| ส่วน | Platform |
-|------|----------|
-| Frontend (Next.js 14) | Vercel |
-| Backend (Node.js/Express) | Railway |
-| Database (PostgreSQL) | Railway |
+| ส่วน | Platform | URL จริง (production) |
+|------|----------|------------------------|
+| Frontend (Next.js 14) | Vercel | https://meestock.vercel.app |
+| Backend (Node.js/Express) | Railway | https://meestock-api-production.up.railway.app |
+| Database (PostgreSQL) | Railway | (internal, ไม่ public) |
+
+Deploy จริงครั้งแรกทำเมื่อ 2026-07-08 — ดู `memory.md`/`PLAN.md` (หัวข้อ "Deploy จริงครั้งแรก") สำหรับรายละเอียดปัญหาที่เจอและวิธีแก้เต็มๆ สรุปย่อเป็น gotcha ไว้ด้านล่าง
+
+## Monorepo gotchas (เจอจริงระหว่าง deploy — สำคัญ)
+
+- **`devEngines.packageManager` ห้ามใส่**: ทำให้ pnpm 11 self-bootstrap ตัวเองและเขียน `pnpm-lock.yaml` เป็น 2 YAML document ซ้อนกันในไฟล์เดียว — Railway build จะ fail `ERR_PNPM_BROKEN_LOCKFILE` ทุกครั้ง ใช้ `packageManager` field (root `package.json`) พอสำหรับ pin เวอร์ชัน pnpm
+- **Railway Root Directory**: อย่าตั้งเป็น `apps/api` ตรงๆ (จะทำให้ pnpm install มองไม่เห็น workspace lockfile ที่ root) — ปล่อยเป็น repo root แล้วตั้ง custom Build/Start Command ที่ `cd apps/api` แทน (`cd apps/api && pnpm install --frozen-lockfile && pnpm run build` / `cd apps/api && npx prisma migrate deploy && node dist/index.js`)
+- **Railway `watchPatterns`**: ถ้าจะตั้งจำกัด path (กัน redeploy ไม่จำเป็น) ต้องรวม root `package.json`/`pnpm-lock.yaml` ด้วยเสมอ ไม่งั้น commit ที่แก้ dependency ที่ root จะโดน Railway ข้าม (`SKIPPED`) เงียบๆ โดยไม่มี error ใดๆ
+- **Railway `redeploy` ≠ deploy ล่าสุด**: `railway redeploy`/ปุ่ม Redeploy จะรัน commit เดิมที่เคย deploy สำเร็จครั้งล่าสุดซ้ำ ไม่ใช่ HEAD ปัจจุบันของ branch — ถ้าต้องการ build commit ล่าสุดจริงๆ ต้อง trigger deploy ใหม่ (ผ่าน dashboard "Deploy" หรือ GraphQL `serviceInstanceDeploy(latestCommit: true)`)
+- **Vercel Root Directory**: ต้องตั้งเป็น `apps/web` ที่หน้า Project Settings เอง (ไม่มี auto-detect ให้ในโปรเจกต์ monorepo) พร้อม Framework Preset = Next.js ไม่งั้นจะพยายาม build ที่ repo root ซึ่งไม่มี Next.js app
 
 ## Environment Variables
 

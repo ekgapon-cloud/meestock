@@ -12,3 +12,5 @@ exit.pub
 
 # Local Claude Code tool config (machine-specific paths/PIDs) — not shared across dev machines
 .claude/
+.vercel
+.env*

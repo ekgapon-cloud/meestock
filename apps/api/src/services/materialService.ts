@@ -10,9 +10,10 @@ import {
   findMaterials,
   updateMaterial,
 } from "../repositories/materialRepository.js";
+import { groupBalanceByMaterial } from "../repositories/stockTransactionRepository.js";
 import type { CreateMaterialInput, ListMaterialsQuery, UpdateMaterialInput } from "../validation/materialSchema.js";
 
-export async function listMaterials(query: ListMaterialsQuery) {
+export async function listMaterials(query: ListMaterialsQuery, accessibleWarehouseIds: string[] | null) {
   const where: Prisma.MaterialWhereInput = {
     ...(query.categoryId ? { categoryId: query.categoryId } : {}),
     ...(query.includeInactive ? {} : { isActive: true }),
@@ -29,7 +30,20 @@ export async function listMaterials(query: ListMaterialsQuery) {
   const skip = (query.page - 1) * query.limit;
   const [items, total] = await Promise.all([findMaterials(where, skip, query.limit), countMaterials(where)]);
 
-  return { items, total, page: query.page, limit: query.limit };
+  const balanceGroups = await groupBalanceByMaterial({
+    materialId: { in: items.map((item) => item.id) },
+    ...(accessibleWarehouseIds ? { warehouseId: { in: accessibleWarehouseIds } } : {}),
+  });
+  const remainingQtyByMaterialId = new Map(
+    balanceGroups.map((group) => [group.materialId, Number(group._sum.quantityChange ?? 0)]),
+  );
+
+  const itemsWithBalance = items.map((item) => ({
+    ...item,
+    remainingQty: remainingQtyByMaterialId.get(item.id) ?? 0,
+  }));
+
+  return { items: itemsWithBalance, total, page: query.page, limit: query.limit };
 }
 
 /** Distinct units already used by existing materials, for the create/edit form's unit dropdown. */

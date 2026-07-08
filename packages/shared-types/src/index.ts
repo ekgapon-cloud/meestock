@@ -65,8 +65,13 @@ export interface Material {
   supplier: Supplier | null;
 }
 
+/** GET /materials/:id and other single-material endpoints don't compute this -- list-only. */
+export interface MaterialListItem extends Material {
+  remainingQty: number;
+}
+
 export interface MaterialListResponse {
-  items: Material[];
+  items: MaterialListItem[];
   total: number;
   page: number;
   limit: number;

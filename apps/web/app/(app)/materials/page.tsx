@@ -77,6 +77,7 @@ export default async function MaterialsPage({
               <th>ชื่อ</th>
               <th>หมวดหมู่</th>
               <th>หน่วย</th>
+              <th>คงเหลือ</th>
               <th>ต้นทุนมาตรฐาน</th>
               <th />
             </tr>
@@ -91,6 +92,7 @@ export default async function MaterialsPage({
                 <td>{m.name}</td>
                 <td>{m.category.name}</td>
                 <td>{m.unit}</td>
+                <td>{m.remainingQty}</td>
                 <td>{formatCurrency(m.standardCost)}</td>
                 <td>
                   <Link href={`/materials/${m.id}/edit`} className="btn-secondary-sm">

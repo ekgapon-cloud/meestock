@@ -1,4 +1,6 @@
 import type { Request, Response } from "express";
+import { AppError } from "../errors/AppError.js";
+import { getAccessibleWarehouseIds } from "../services/accessControlService.js";
 import {
   createMaterialSchema,
   listMaterialsQuerySchema,
@@ -14,9 +16,18 @@ import {
   updateMaterialWithValidation,
 } from "../services/materialService.js";
 
+function requireUser(req: Request) {
+  if (!req.user) {
+    throw new AppError("UNAUTHORIZED", "Authentication required");
+  }
+  return req.user;
+}
+
 export async function listMaterialsHandler(req: Request, res: Response) {
+  const user = requireUser(req);
   const query = listMaterialsQuerySchema.parse(req.query);
-  const result = await listMaterials(query);
+  const accessibleWarehouseIds = await getAccessibleWarehouseIds(user.id, user.accessLevel);
+  const result = await listMaterials(query, accessibleWarehouseIds);
   res.json(result);
 }
 

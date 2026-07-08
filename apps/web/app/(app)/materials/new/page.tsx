@@ -2,12 +2,17 @@ import Link from "next/link";
 import type { Category } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { BarcodeField } from "../BarcodeField";
+import { UnitField } from "../UnitField";
 import { createMaterialAction } from "./actions";
 
 export default async function NewMaterialPage({ searchParams }: { searchParams: { error?: string } }) {
   let categories: Category[];
+  let units: string[];
   try {
-    categories = await apiFetch<Category[]>("/categories");
+    [categories, units] = await Promise.all([
+      apiFetch<Category[]>("/categories"),
+      apiFetch<string[]>("/materials/units"),
+    ]);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) {
       redirectToLogin();
@@ -56,7 +61,7 @@ export default async function NewMaterialPage({ searchParams }: { searchParams: 
 
         <label>
           หน่วยนับ
-          <input type="text" name="unit" required />
+          <UnitField units={units} />
         </label>
 
         <label>

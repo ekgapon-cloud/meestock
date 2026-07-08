@@ -3,6 +3,7 @@ import { AppError } from "../errors/AppError.js";
 import {
   countMaterials,
   createMaterial,
+  findDistinctUnits,
   findMaterialByBarcode,
   findMaterialByCode,
   findMaterialById,
@@ -29,6 +30,12 @@ export async function listMaterials(query: ListMaterialsQuery) {
   const [items, total] = await Promise.all([findMaterials(where, skip, query.limit), countMaterials(where)]);
 
   return { items, total, page: query.page, limit: query.limit };
+}
+
+/** Distinct units already used by existing materials, for the create/edit form's unit dropdown. */
+export async function listMaterialUnits() {
+  const rows = await findDistinctUnits();
+  return rows.map((row) => row.unit);
 }
 
 export async function getMaterial(id: string) {

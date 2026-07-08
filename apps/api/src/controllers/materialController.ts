@@ -10,6 +10,7 @@ import {
   getMaterial,
   getMaterialByCode,
   listMaterials,
+  listMaterialUnits,
   updateMaterialWithValidation,
 } from "../services/materialService.js";
 
@@ -17,6 +18,11 @@ export async function listMaterialsHandler(req: Request, res: Response) {
   const query = listMaterialsQuerySchema.parse(req.query);
   const result = await listMaterials(query);
   res.json(result);
+}
+
+export async function listMaterialUnitsHandler(_req: Request, res: Response) {
+  const units = await listMaterialUnits();
+  res.json(units);
 }
 
 export async function getMaterialHandler(req: Request, res: Response) {

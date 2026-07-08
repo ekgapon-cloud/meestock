@@ -35,6 +35,14 @@ export function findActiveMaterialsWithReorderPoint() {
   return prisma.material.findMany({ where: { isActive: true, reorderPoint: { not: null } } });
 }
 
+export function findDistinctUnits() {
+  return prisma.material.findMany({
+    distinct: ["unit"],
+    select: { unit: true },
+    orderBy: { unit: "asc" },
+  });
+}
+
 export function createMaterial(data: Prisma.MaterialCreateInput) {
   return prisma.material.create({ data, include: { category: true, supplier: true } });
 }

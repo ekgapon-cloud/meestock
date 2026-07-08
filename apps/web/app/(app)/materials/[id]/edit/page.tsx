@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Category, Material } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../../lib/api";
 import { BarcodeField } from "../../BarcodeField";
+import { UnitField } from "../../UnitField";
 import { updateMaterialAction } from "./actions";
 
 export default async function EditMaterialPage({
@@ -13,10 +14,12 @@ export default async function EditMaterialPage({
 }) {
   let material: Material;
   let categories: Category[];
+  let units: string[];
   try {
-    [material, categories] = await Promise.all([
+    [material, categories, units] = await Promise.all([
       apiFetch<Material>(`/materials/${params.id}`),
       apiFetch<Category[]>("/categories"),
+      apiFetch<string[]>("/materials/units"),
     ]);
   } catch (err) {
     if (err instanceof ApiError) {
@@ -60,7 +63,7 @@ export default async function EditMaterialPage({
 
         <label>
           หน่วยนับ
-          <input type="text" name="unit" defaultValue={material.unit} required />
+          <UnitField units={units} defaultValue={material.unit} />
         </label>
 
         <label>

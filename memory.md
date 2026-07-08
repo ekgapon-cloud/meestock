@@ -179,6 +179,16 @@ User สั่งให้ dump ข้อมูลวัสดุขึ้น Ra
 - **Verified**: เทียบ row count ทุกตารางระหว่าง local/production ตรงกันเป๊ะทุกตัว (Material 557, Category 12, Warehouse 5, StockTransaction 59 ฯลฯ), login จริงผ่านทั้ง API ตรงและหน้าเว็บจริงบน production หลัง sync ยังทำงานปกติ, หน้า `/materials` บน `meestock.vercel.app` แสดงรหัส `LM-xxxx` จริงถูกต้อง
 - **หมายเหตุ**: การ sync ครั้งนี้ทับข้อมูล seed เดิมของ production ทั้งหมด (employee ID เปลี่ยนไปเป็นของ local แทน แต่ email/password เดิมเหมือนกันเพราะมาจาก `seed.ts` เดียวกัน) — ถ้าจะ sync ซ้ำในอนาคตต้องระวังลำดับเดิม (dump ก่อน ล้างปลายทางก่อน restore เสมอ ห้ามสลับ)
 
+## Brand colors จากโลโก้จริง + ปรับ UX/UI (2026-07-08)
+User ส่งไฟล์โลโก้จริง (`M.Double E Engineering Co.,Ltd.` — เฟือง gold/gear ล้อมตัวอักษร "M.EE" สีแดงเข้ม บนพื้นขาว) ให้ปรับ UI ให้สบายตา/เหมาะกับการใช้งานนานๆ และเข้ากับสีโลโก้ โดยห้ามเปลี่ยนสี status
+- **สกัดสีจริงจากไฟล์ภาพ** (ไม่มี PIL/ImageMagick ในเครื่อง เลยเขียน PNG decoder เองด้วย stdlib `zlib` ล้วนๆ อ่าน pixel ตรงๆ) ได้: gold/เฟือง = `#FDBC02`, แดงเข้ม (ตัวอักษร M.EE + ขอบวงกลม) = `#CC0812`
+- **ใช้สีแดงเป็น primary** (ปุ่ม/ลิงก์/active state) แทนสีฟ้าเดิม (`#2563eb`) — ทดสอบ contrast ratio กับพื้นขาวได้ 5.82:1 ผ่าน WCAG AA สบายๆ ไม่ต้องปรับให้เข้มขึ้น. **ใช้ทองเป็น accent** (พื้น header ตาราง tint อ่อนๆ + ตัวหนังสือแดงทับ — ล้อกับดีไซน์จริงของโลโก้ที่ทองล้อมแดงบนขาว, พื้นหลังหน้า login, เส้น border ซ้ายของ sidebar link ที่ active)
+- **ปรับพื้นหลังหลักให้อุ่นขึ้นเล็กน้อย** (`--color-bg` จาก `#f7f8fa` cool gray → `#faf8f5` warm off-white) เพื่อสบายตาตอนใช้งานนานๆ — แต่การ์ด/ตาราง (`--color-surface`) ยังคงเป็นขาวล้วนเพื่อความชัดเจนของข้อมูล
+- **ไม่แตะ `.status-*` และ `--color-danger`/`--color-danger-bg` เลย** ตามที่ user สั่งชัดเจน — verified ผ่าน screenshot จริงว่า badge สถานะ (pending/approved/fulfilled/rejected ฯลฯ) สีเดิมทุกอัน
+- ลบตัวแปร `--color-brick*` เดิม (เคยเป็นสีน้ำตาลแดงเดา ๆ ก่อนจะรู้สีจริงจากโลโก้) เปลี่ยนไปใช้ `--color-gold`/`--color-gold-bg` แทน
+- **Verified จริงด้วย Playwright screenshot** (login/dashboard/materials/material-issues) — ระหว่างทางเจอ `.next` cache เสียอีกรอบ (เหมือนที่เคยเจอมาก่อน) ต้อง stop dev server + ลบ `.next` + restart ใหม่ถึงจะ render ถูก, กับปัญหา HMR rebuild แทรกกลางเทสต์ตัวเองตอนแก้ไฟล์ทดสอบพร้อมกับที่ dev server กำลัง watch อยู่ (แก้โดยรอ compile นิ่งก่อนค่อยรันเทสต์)
+- **หมายเหตุ**: commit ไว้ในเครื่อง (local) เท่านั้นตามที่ user สั่งไว้ก่อนหน้า ("แก้ไขไฟล์ต่างๆ ทำใน local เท่านั้นก่อน") — ยังไม่ได้ push
+
 ## TODO / Open Questions
 - [x] ยืนยัน field ทั้งหมดใน schema — ตรงกับ `schema.prisma` จริงแล้ว
 - [x] Edge case ของ role — user ยืนยันแล้วว่าต้องการ role จัดซื้อ (`PURCHASING`) แยกจาก `WAREHOUSE`, implement เสร็จแล้วด้านบน

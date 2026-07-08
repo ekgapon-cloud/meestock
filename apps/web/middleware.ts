@@ -21,5 +21,9 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Excludes any path with a file extension (images, fonts, etc. served from /public)
+  // in addition to the existing api/_next/favicon exclusions — otherwise static assets
+  // added under /public get auth-redirected too, including Next's own internal
+  // image-optimizer fetch for local images.
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

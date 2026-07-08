@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Me, POStatus, PurchaseOrder } from "shared-types";
 import { apiFetch, ApiError } from "../../../../lib/api";
+import { Logo } from "../../../../components/Logo";
 import { PrintButton } from "../../PrintButton";
 import { cancelPurchaseOrderAction, markPurchaseOrderOrderedAction } from "./actions";
 
@@ -50,7 +51,10 @@ export default async function PurchaseOrderDetailPage({
   return (
     <div>
       <div className="page-header">
-        <h1>{po.docNo}</h1>
+        <div className="page-header-title">
+          <Logo size={56} />
+          <h1>{po.docNo}</h1>
+        </div>
         <div className="page-header-actions">
           <span className={`status-badge status-${po.status.toLowerCase()}`}>{STATUS_LABELS[po.status]}</span>
           <PrintButton />

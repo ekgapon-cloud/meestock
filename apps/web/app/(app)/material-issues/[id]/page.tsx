@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { IssueStatus, Me, MaterialIssue } from "shared-types";
 import { apiFetch, ApiError } from "../../../../lib/api";
+import { Logo } from "../../../../components/Logo";
 import { PrintButton } from "../../PrintButton";
 import { approveMaterialIssueAction, fulfillMaterialIssueAction, rejectMaterialIssueAction } from "./actions";
 
@@ -59,7 +60,10 @@ export default async function MaterialIssueDetailPage({
   return (
     <div>
       <div className="page-header">
-        <h1>{issue.docNo}</h1>
+        <div className="page-header-title">
+          <Logo size={56} />
+          <h1>{issue.docNo}</h1>
+        </div>
         <div className="page-header-actions">
           <span className={`status-badge status-${issue.status.toLowerCase()}`}>{STATUS_LABELS[issue.status]}</span>
           {issue.isOverdue && <span className="status-badge status-overdue">เกินกำหนด</span>}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { GoodsReceive } from "shared-types";
 import { apiFetch, ApiError } from "../../../../lib/api";
+import { Logo } from "../../../../components/Logo";
 import { PrintButton } from "../../PrintButton";
 
 function formatDateTime(value: string) {
@@ -27,7 +28,10 @@ export default async function GoodsReceiveDetailPage({ params }: { params: { id:
   return (
     <div>
       <div className="page-header">
-        <h1>{goodsReceive.docNo}</h1>
+        <div className="page-header-title">
+          <Logo size={56} />
+          <h1>{goodsReceive.docNo}</h1>
+        </div>
         <PrintButton />
       </div>
 

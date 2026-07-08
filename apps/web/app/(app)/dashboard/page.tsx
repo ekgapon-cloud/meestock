@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ExecutiveDashboard } from "shared-types";
 import { apiFetch, ApiError } from "../../../lib/api";
+import { Logo } from "../../../components/Logo";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(value);
@@ -32,7 +33,10 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1>Executive dashboard</h1>
+      <div className="page-header-title" style={{ marginBottom: "1rem" }}>
+        <Logo variant="icon" size={44} />
+        <h1>Executive dashboard</h1>
+      </div>
 
       <div className="bento-grid">
         <div className="bento-card bento-card-lg">

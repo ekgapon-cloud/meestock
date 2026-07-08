@@ -384,6 +384,17 @@ button:disabled {
   margin: 0;
 }
 
+.page-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo {
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 /* Tables */
 table {
   width: 100%;

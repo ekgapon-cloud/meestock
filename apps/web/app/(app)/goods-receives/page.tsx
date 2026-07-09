@@ -24,7 +24,7 @@ export default async function GoodsReceivesPage({ searchParams }: { searchParams
     throw err;
   }
 
-  const canCreate = me.role === "WAREHOUSE" || me.accessLevel === "ADMIN";
+  const canCreate = me.role === "WAREHOUSE" || me.accessLevel === "ADMIN" || me.accessLevel === "MANAGER";
   const totalPages = Math.max(1, Math.ceil(data.total / data.limit));
 
   return (

@@ -43,7 +43,7 @@ export default async function PurchaseOrderDetailPage({
     throw err;
   }
 
-  const canManage = me.role === "PURCHASING" || me.accessLevel === "ADMIN";
+  const canManage = me.role === "PURCHASING" || me.accessLevel === "ADMIN" || me.accessLevel === "MANAGER";
   const canMarkOrdered = canManage && po.status === "DRAFT";
   const canCancel = canManage && (po.status === "DRAFT" || po.status === "ORDERED");
 

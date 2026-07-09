@@ -2,13 +2,13 @@ import type { NextFunction, Request, Response } from "express";
 import type { AccessLevel, EmployeeRole } from "@prisma/client";
 import { AppError } from "../errors/AppError.js";
 
-/** Admin accessLevel always bypasses role checks — it is the system's superuser tier. */
+/** ADMIN and MANAGER accessLevel always bypass role checks — both act as full-permission tiers for action gating (accessLevel-gated endpoints like /users stay ADMIN-only via requireAccessLevel). */
 export function requireRole(...roles: EmployeeRole[]) {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new AppError("UNAUTHORIZED", "Authentication required");
     }
-    if (req.user.accessLevel === "ADMIN" || roles.includes(req.user.role)) {
+    if (req.user.accessLevel === "ADMIN" || req.user.accessLevel === "MANAGER" || roles.includes(req.user.role)) {
       next();
       return;
     }

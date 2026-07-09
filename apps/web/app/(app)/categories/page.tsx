@@ -17,7 +17,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
     throw err;
   }
 
-  const canManage = me.accessLevel === "ADMIN" || me.role === "WAREHOUSE";
+  const canManage = me.accessLevel === "ADMIN" || me.accessLevel === "MANAGER" || me.role === "WAREHOUSE";
 
   return (
     <div>

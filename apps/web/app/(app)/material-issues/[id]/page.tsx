@@ -52,9 +52,10 @@ export default async function MaterialIssueDetailPage({
   }
 
   const isOwnRequest = me.id === issue.requesterId;
+  const isFullAccess = me.accessLevel === "ADMIN" || me.accessLevel === "MANAGER";
   const canApproveOrReject =
-    issue.status === "PENDING_APPROVAL" && !isOwnRequest && (me.role === "APPROVER" || me.accessLevel === "ADMIN");
-  const canFulfill = issue.status === "APPROVED" && (me.role === "WAREHOUSE" || me.accessLevel === "ADMIN");
+    issue.status === "PENDING_APPROVAL" && !isOwnRequest && (me.role === "APPROVER" || isFullAccess);
+  const canFulfill = issue.status === "APPROVED" && (me.role === "WAREHOUSE" || isFullAccess);
 
   return (
     <div>

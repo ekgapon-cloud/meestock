@@ -48,7 +48,7 @@ export default async function MaterialIssuesPage({
     throw err;
   }
 
-  const canCreate = me.role === "REQUESTER" || me.accessLevel === "ADMIN";
+  const canCreate = me.role === "REQUESTER" || me.accessLevel === "ADMIN" || me.accessLevel === "MANAGER";
   const totalPages = Math.max(1, Math.ceil(data.total / data.limit));
   const suffix = searchParams.status ? `&status=${searchParams.status}` : "";
 

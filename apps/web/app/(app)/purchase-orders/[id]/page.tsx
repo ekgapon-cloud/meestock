@@ -46,6 +46,9 @@ export default async function PurchaseOrderDetailPage({
   const canManage = me.role === "PURCHASING" || me.accessLevel === "ADMIN" || me.accessLevel === "MANAGER";
   const canMarkOrdered = canManage && po.status === "DRAFT";
   const canCancel = canManage && (po.status === "DRAFT" || po.status === "ORDERED");
+  const canReceive =
+    (me.role === "WAREHOUSE" || me.accessLevel === "ADMIN" || me.accessLevel === "MANAGER") &&
+    (po.status === "ORDERED" || po.status === "PARTIALLY_RECEIVED");
 
   return (
     <div>
@@ -99,12 +102,17 @@ export default async function PurchaseOrderDetailPage({
         </tbody>
       </table>
 
-      {(canMarkOrdered || canCancel) && (
+      {(canMarkOrdered || canCancel || canReceive) && (
         <section className="form-actions">
           {canMarkOrdered && (
             <form action={markPurchaseOrderOrderedAction.bind(null, po.id)}>
               <button type="submit">สั่งซื้อ</button>
             </form>
+          )}
+          {canReceive && (
+            <Link href={`/goods-receives/new?poId=${po.id}`} className="btn-primary">
+              รับสินค้า
+            </Link>
           )}
           {canCancel && (
             <form action={cancelPurchaseOrderAction.bind(null, po.id)}>

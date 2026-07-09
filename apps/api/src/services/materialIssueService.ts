@@ -20,6 +20,7 @@ import { createTransaction, sumQuantityChange } from "../repositories/stockTrans
 import type {
   ApproveMaterialIssueInput,
   CreateMaterialIssueInput,
+  FulfillMaterialIssueInput,
   ListMaterialIssuesQuery,
   RejectMaterialIssueInput,
 } from "../validation/materialIssueSchema.js";
@@ -242,6 +243,7 @@ export async function rejectMaterialIssue(
 export async function fulfillMaterialIssue(
   issueId: string,
   fulfilledById: string,
+  input: FulfillMaterialIssueInput,
   ipAddress: string | undefined,
   accessibleWarehouseIds: string[] | null,
 ) {
@@ -255,25 +257,36 @@ export async function fulfillMaterialIssue(
     throw new AppError("INVALID_WORKFLOW_STATE", "Issue must be APPROVED before it can be fulfilled");
   }
 
+  const issuedQtyByMaterialId = new Map(input.items.map((item) => [item.materialId, item.issuedQty]));
+
   return runInTransaction(async (tx) => {
     let anyIssued = false;
     let anyShortfall = false;
 
     for (const item of issue.items) {
       const approvedQty = Number(item.approvedQty ?? 0);
-      if (approvedQty <= 0) {
-        continue;
+      const issuedQty = issuedQtyByMaterialId.get(item.materialId) ?? 0;
+
+      if (issuedQty > approvedQty) {
+        throw new AppError(
+          "VALIDATION_ERROR",
+          `issuedQty for material ${item.materialId} cannot exceed approvedQty (${approvedQty})`,
+        );
       }
 
-      const balanceResult = await sumQuantityChange(
-        { materialId: item.materialId, warehouseId: issue.warehouseId },
-        tx,
-      );
-      const balance = Number(balanceResult._sum.quantityChange ?? 0);
-      const issuedQty = Math.max(0, Math.min(approvedQty, balance));
-      const isShortfall = issuedQty < approvedQty;
-
       if (issuedQty > 0) {
+        const balanceResult = await sumQuantityChange(
+          { materialId: item.materialId, warehouseId: issue.warehouseId },
+          tx,
+        );
+        const balance = Number(balanceResult._sum.quantityChange ?? 0);
+        if (issuedQty > balance) {
+          throw new AppError(
+            "INSUFFICIENT_STOCK",
+            `Only ${balance} of material ${item.materialId} available in stock`,
+          );
+        }
+
         anyIssued = true;
         await createTransaction(
           {
@@ -291,6 +304,8 @@ export async function fulfillMaterialIssue(
           tx,
         );
       }
+
+      const isShortfall = issuedQty < approvedQty;
       if (isShortfall) {
         anyShortfall = true;
       }
@@ -300,16 +315,14 @@ export async function fulfillMaterialIssue(
         {
           issuedQty,
           isShortfall,
-          ...(isShortfall
-            ? { shortfallNote: `Requested ${approvedQty}, only ${issuedQty} available in stock` }
-            : {}),
+          ...(isShortfall ? { shortfallNote: `Approved ${approvedQty}, issued ${issuedQty}` } : {}),
         },
         tx,
       );
     }
 
     if (!anyIssued) {
-      throw new AppError("INSUFFICIENT_STOCK", "No stock available to fulfill this issue");
+      throw new AppError("VALIDATION_ERROR", "At least one item must be issued to fulfill this request");
     }
 
     const updated = await updateIssue(

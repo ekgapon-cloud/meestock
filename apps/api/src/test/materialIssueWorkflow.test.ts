@@ -27,7 +27,15 @@ describe("material issue workflow — state machine and segregation of duties", 
     );
 
     expect(issue.status).toBe("PENDING_APPROVAL");
-    await expect(fulfillMaterialIssue(issue.id, warehouseStaff.id, undefined, null)).rejects.toMatchObject({
+    await expect(
+      fulfillMaterialIssue(
+        issue.id,
+        warehouseStaff.id,
+        { items: [{ materialId: material.id, issuedQty: 10 }] },
+        undefined,
+        null,
+      ),
+    ).rejects.toMatchObject({
       code: "INVALID_WORKFLOW_STATE",
     });
   });
@@ -65,14 +73,50 @@ describe("material issue workflow — state machine and segregation of duties", 
       null,
     );
     await approveMaterialIssue(issue.id, approver.id, {}, null);
-    const fulfilled = await fulfillMaterialIssue(issue.id, warehouseStaff.id, undefined, null);
+    const fulfilled = await fulfillMaterialIssue(
+      issue.id,
+      warehouseStaff.id,
+      { items: [{ materialId: material.id, issuedQty: 40 }] },
+      undefined,
+      null,
+    );
 
     expect(fulfilled.status).toBe("FULFILLED");
     expect(Number(fulfilled.items[0]?.issuedQty)).toBe(40);
     expect(fulfilled.items[0]?.isShortfall).toBe(false);
   });
 
-  it("marks PARTIALLY_FULFILLED with a shortfall note when approved qty exceeds available stock", async () => {
+  it("marks PARTIALLY_FULFILLED with a shortfall note when the warehouse deliberately issues less than approved", async () => {
+    const requester = await createEmployee({ role: "REQUESTER" });
+    const approver = await createEmployee({ role: "APPROVER" });
+    const warehouseStaff = await createEmployee({ role: "WAREHOUSE" });
+    const { project, warehouse } = await createProjectWarehouse();
+    const material = await createMaterial({ standardCost: 10 });
+
+    await receiveStock({ warehouseId: warehouse.id, materialId: material.id, quantity: 100, unitCost: 10 }, warehouseStaff.id, undefined, null);
+
+    const issue = await createMaterialIssue(
+      { projectId: project.id, warehouseId: warehouse.id, items: [{ materialId: material.id, requestedQty: 50 }] },
+      requester.id,
+      undefined,
+      null,
+    );
+    await approveMaterialIssue(issue.id, approver.id, {}, null);
+    const fulfilled = await fulfillMaterialIssue(
+      issue.id,
+      warehouseStaff.id,
+      { items: [{ materialId: material.id, issuedQty: 20 }] },
+      undefined,
+      null,
+    );
+
+    expect(fulfilled.status).toBe("PARTIALLY_FULFILLED");
+    expect(Number(fulfilled.items[0]?.issuedQty)).toBe(20);
+    expect(fulfilled.items[0]?.isShortfall).toBe(true);
+    expect(fulfilled.items[0]?.shortfallNote).toContain("50");
+  });
+
+  it("rejects fulfilling more than what's actually available in stock", async () => {
     const requester = await createEmployee({ role: "REQUESTER" });
     const approver = await createEmployee({ role: "APPROVER" });
     const warehouseStaff = await createEmployee({ role: "WAREHOUSE" });
@@ -88,11 +132,43 @@ describe("material issue workflow — state machine and segregation of duties", 
       null,
     );
     await approveMaterialIssue(issue.id, approver.id, {}, null);
-    const fulfilled = await fulfillMaterialIssue(issue.id, warehouseStaff.id, undefined, null);
 
-    expect(fulfilled.status).toBe("PARTIALLY_FULFILLED");
-    expect(Number(fulfilled.items[0]?.issuedQty)).toBe(20);
-    expect(fulfilled.items[0]?.isShortfall).toBe(true);
-    expect(fulfilled.items[0]?.shortfallNote).toContain("50");
+    await expect(
+      fulfillMaterialIssue(
+        issue.id,
+        warehouseStaff.id,
+        { items: [{ materialId: material.id, issuedQty: 50 }] },
+        undefined,
+        null,
+      ),
+    ).rejects.toMatchObject({ code: "INSUFFICIENT_STOCK" });
+  });
+
+  it("rejects fulfilling more than the approved quantity", async () => {
+    const requester = await createEmployee({ role: "REQUESTER" });
+    const approver = await createEmployee({ role: "APPROVER" });
+    const warehouseStaff = await createEmployee({ role: "WAREHOUSE" });
+    const { project, warehouse } = await createProjectWarehouse();
+    const material = await createMaterial({ standardCost: 10 });
+
+    await receiveStock({ warehouseId: warehouse.id, materialId: material.id, quantity: 100, unitCost: 10 }, warehouseStaff.id, undefined, null);
+
+    const issue = await createMaterialIssue(
+      { projectId: project.id, warehouseId: warehouse.id, items: [{ materialId: material.id, requestedQty: 40 }] },
+      requester.id,
+      undefined,
+      null,
+    );
+    await approveMaterialIssue(issue.id, approver.id, { items: [{ materialId: material.id, approvedQty: 30 }] }, null);
+
+    await expect(
+      fulfillMaterialIssue(
+        issue.id,
+        warehouseStaff.id,
+        { items: [{ materialId: material.id, issuedQty: 40 }] },
+        undefined,
+        null,
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
   });
 });

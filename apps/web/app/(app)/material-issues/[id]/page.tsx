@@ -142,7 +142,34 @@ export default async function MaterialIssueDetailPage({
         <section className="form-actions">
           {canApproveOrReject && (
             <>
-              <form action={approveMaterialIssueAction.bind(null, issue.id)}>
+              <form action={approveMaterialIssueAction.bind(null, issue.id)} className="qty-form">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>วัสดุ</th>
+                      <th>ขอเบิก</th>
+                      <th>จำนวนที่อนุมัติ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {issue.items.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.material.name}</td>
+                        <td>{item.requestedQty}</td>
+                        <td>
+                          <input
+                            type="number"
+                            name={`approvedQty__${item.materialId}`}
+                            min="0"
+                            max={item.requestedQty}
+                            step="1"
+                            defaultValue={item.requestedQty}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
                 <button type="submit">อนุมัติ</button>
               </form>
               <form action={rejectMaterialIssueAction.bind(null, issue.id)} className="reject-form">
@@ -154,7 +181,37 @@ export default async function MaterialIssueDetailPage({
             </>
           )}
           {canFulfill && (
-            <form action={fulfillMaterialIssueAction.bind(null, issue.id)}>
+            <form action={fulfillMaterialIssueAction.bind(null, issue.id)} className="qty-form">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วัสดุ</th>
+                    <th>อนุมัติ</th>
+                    <th>จำนวนที่จ่ายจริง</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {issue.items.map((item) => {
+                    const approvedQty = item.approvedQty ?? item.requestedQty;
+                    return (
+                      <tr key={item.id}>
+                        <td>{item.material.name}</td>
+                        <td>{approvedQty}</td>
+                        <td>
+                          <input
+                            type="number"
+                            name={`issuedQty__${item.materialId}`}
+                            min="0"
+                            max={approvedQty}
+                            step="1"
+                            defaultValue={approvedQty}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
               <button type="submit">จ่ายวัสดุ</button>
             </form>
           )}

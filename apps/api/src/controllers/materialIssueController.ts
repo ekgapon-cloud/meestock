@@ -13,6 +13,7 @@ import {
 import {
   approveMaterialIssueSchema,
   createMaterialIssueSchema,
+  fulfillMaterialIssueSchema,
   listMaterialIssuesQuerySchema,
   rejectMaterialIssueSchema,
 } from "../validation/materialIssueSchema.js";
@@ -66,7 +67,8 @@ export async function rejectMaterialIssueHandler(req: Request, res: Response) {
 
 export async function fulfillMaterialIssueHandler(req: Request, res: Response) {
   const user = requireUser(req);
+  const input = fulfillMaterialIssueSchema.parse(req.body);
   const accessibleWarehouseIds = await getAccessibleWarehouseIds(user.id, user.accessLevel);
-  const issue = await fulfillMaterialIssue(req.params["id"] as string, user.id, req.ip, accessibleWarehouseIds);
+  const issue = await fulfillMaterialIssue(req.params["id"] as string, user.id, input, req.ip, accessibleWarehouseIds);
   res.json(canViewCost(user.accessLevel) ? issue : redactItemsCost(issue));
 }

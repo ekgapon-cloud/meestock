@@ -30,7 +30,7 @@ export const approveMaterialIssueSchema = z.object({
     .array(
       z.object({
         materialId: z.string().min(1),
-        approvedQty: z.coerce.number().nonnegative(),
+        approvedQty: z.coerce.number().int().nonnegative(),
       }),
     )
     .optional(),
@@ -40,7 +40,19 @@ export const rejectMaterialIssueSchema = z.object({
   reason: z.string().min(1),
 });
 
+export const fulfillMaterialIssueSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        materialId: z.string().min(1),
+        issuedQty: z.coerce.number().int().nonnegative(),
+      }),
+    )
+    .min(1),
+});
+
 export type CreateMaterialIssueInput = z.infer<typeof createMaterialIssueSchema>;
 export type ListMaterialIssuesQuery = z.infer<typeof listMaterialIssuesQuerySchema>;
 export type ApproveMaterialIssueInput = z.infer<typeof approveMaterialIssueSchema>;
 export type RejectMaterialIssueInput = z.infer<typeof rejectMaterialIssueSchema>;
+export type FulfillMaterialIssueInput = z.infer<typeof fulfillMaterialIssueSchema>;

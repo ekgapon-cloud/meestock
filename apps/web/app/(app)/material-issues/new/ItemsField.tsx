@@ -31,7 +31,8 @@ export function ItemsField({ materials }: { materials: Material[] }) {
   }
 
   function updateQty(materialId: string, qty: number) {
-    setRows((prev) => prev.map((r) => (r.materialId === materialId ? { ...r, qty } : r)));
+    const intQty = Math.max(1, Math.round(qty));
+    setRows((prev) => prev.map((r) => (r.materialId === materialId ? { ...r, qty: intQty } : r)));
   }
 
   const lookupAndAdd = useCallback(async (rawCode: string) => {
@@ -118,10 +119,13 @@ export function ItemsField({ materials }: { materials: Material[] }) {
                   <input
                     type="number"
                     name="qty"
-                    min="0.01"
-                    step="0.01"
+                    min="1"
+                    step="1"
                     value={row.qty}
                     onChange={(event) => updateQty(row.materialId, Number(event.target.value))}
+                    onKeyDown={(event) => {
+                      if (event.key === "." || event.key === ",") event.preventDefault();
+                    }}
                   />
                 </td>
                 <td>

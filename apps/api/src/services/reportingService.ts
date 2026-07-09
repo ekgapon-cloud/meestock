@@ -223,7 +223,10 @@ async function getTopCostSites(accessibleWarehouseIds: string[] | null, limit = 
     .slice(0, limit);
 }
 
-export async function getLowStockMaterials(accessibleWarehouseIds: string[] | null) {
+export async function getLowStockMaterials(accessibleWarehouseIds: string[] | null, warehouseId?: string) {
+  if (warehouseId) {
+    assertWarehouseAccessible(warehouseId, accessibleWarehouseIds);
+  }
   const materials = await findActiveMaterialsWithReorderPoint();
   if (materials.length === 0) {
     return [];
@@ -231,7 +234,11 @@ export async function getLowStockMaterials(accessibleWarehouseIds: string[] | nu
 
   const where: Prisma.StockTransactionWhereInput = {
     materialId: { in: materials.map((m) => m.id) },
-    ...(accessibleWarehouseIds ? { warehouseId: { in: accessibleWarehouseIds } } : {}),
+    ...(warehouseId
+      ? { warehouseId }
+      : accessibleWarehouseIds
+        ? { warehouseId: { in: accessibleWarehouseIds } }
+        : {}),
   };
   const groups = await groupBalanceByMaterialWarehouse(where);
   const materialById = new Map(materials.map((m) => [m.id, m]));
@@ -336,14 +343,68 @@ export async function getSiteFinancialSummary(
   };
 }
 
-export async function getExecutiveDashboard(accessibleWarehouseIds: string[] | null) {
-  const [stockValue, monthlyIssueTrend, topIssuedMaterials, topCostSites, lowStockMaterials] = await Promise.all([
+/**
+ * Stock value distributed across SITE warehouses whose linked project hasn't finished yet
+ * (status PLANNING or IN_PROGRESS) — feeds the executive dashboard's donut chart. Warehouses
+ * with no project (CENTRAL/TEMPORARY) or a COMPLETED/CANCELLED project are excluded, since
+ * "ยังไม่จบโครงการ" (not yet finished) is exactly PLANNING|IN_PROGRESS.
+ */
+export async function getActiveProjectValueBreakdown(accessibleWarehouseIds: string[] | null) {
+  const baseWhere: Prisma.WarehouseWhereInput = accessibleWarehouseIds ? { id: { in: accessibleWarehouseIds } } : {};
+  const [warehouses, stockValue] = await Promise.all([
+    findWarehouses(baseWhere),
     getStockValueReport({}, accessibleWarehouseIds),
-    getMonthlyIssueTrend(accessibleWarehouseIds),
-    getTopIssuedMaterials(accessibleWarehouseIds),
-    getTopCostSites(accessibleWarehouseIds),
-    getLowStockMaterials(accessibleWarehouseIds),
   ]);
+
+  const valueByWarehouse = new Map(stockValue.valueByWarehouse.map((row) => [row.warehouseId, row.value]));
+
+  const activeSites = warehouses
+    .filter((w) => w.project && (w.project.status === "PLANNING" || w.project.status === "IN_PROGRESS"))
+    .map((w) => ({
+      warehouseId: w.id,
+      warehouseName: w.name,
+      projectId: w.project!.id,
+      projectCode: w.project!.code,
+      projectName: w.project!.name,
+      status: w.project!.status,
+      startDate: w.project!.startDate.toISOString(),
+      endDate: w.project!.endDate ? w.project!.endDate.toISOString() : null,
+      value: valueByWarehouse.get(w.id) ?? 0,
+    }));
+
+  const totalValue = activeSites.reduce((sum, site) => sum + site.value, 0);
+
+  return {
+    totalValue,
+    sites: activeSites
+      .map((site) => ({ ...site, percentage: totalValue > 0 ? (site.value / totalValue) * 100 : 0 }))
+      .sort((a, b) => b.value - a.value),
+  };
+}
+
+/**
+ * Same breakdown as `getActiveProjectValueBreakdown`, but strips `value`/`totalValue` — the
+ * absolute money figures STAFF accessLevel must never see (see costVisibilityService) — leaving
+ * only `percentage`, which the user explicitly asked to allow STAFF to view. Percentage alone
+ * doesn't reveal the underlying currency amount, unlike the executive version.
+ */
+export async function getActiveProjectValuePercentageBreakdown(accessibleWarehouseIds: string[] | null) {
+  const breakdown = await getActiveProjectValueBreakdown(accessibleWarehouseIds);
+  return {
+    sites: breakdown.sites.map(({ value: _value, ...rest }) => rest),
+  };
+}
+
+export async function getExecutiveDashboard(accessibleWarehouseIds: string[] | null) {
+  const [stockValue, monthlyIssueTrend, topIssuedMaterials, topCostSites, lowStockMaterials, activeProjectValueBreakdown] =
+    await Promise.all([
+      getStockValueReport({}, accessibleWarehouseIds),
+      getMonthlyIssueTrend(accessibleWarehouseIds),
+      getTopIssuedMaterials(accessibleWarehouseIds),
+      getTopCostSites(accessibleWarehouseIds),
+      getLowStockMaterials(accessibleWarehouseIds),
+      getActiveProjectValueBreakdown(accessibleWarehouseIds),
+    ]);
 
   return {
     totalStockValue: stockValue.totalValue,
@@ -352,6 +413,7 @@ export async function getExecutiveDashboard(accessibleWarehouseIds: string[] | n
     topIssuedMaterials,
     topCostSites,
     lowStockMaterials,
+    activeProjectValueBreakdown,
   };
 }
 
@@ -375,7 +437,9 @@ async function getTopIssuedMaterialsSince(accessibleWarehouseIds: string[] | nul
  * The general-purpose dashboard for every authenticated user (unlike /dashboard/executive,
  * gated to role EXECUTIVE + accessLevel MANAGER/ADMIN) — deliberately excludes every cost/value
  * field so it's safe for STAFF accessLevel to see (see costVisibilityService), and windows
- * everything to the trailing week/month rather than all-time totals.
+ * everything to the trailing week/month rather than all-time totals. The one exception is
+ * `activeProjectValueBreakdown`, which STAFF is explicitly allowed to see as a percentage-only
+ * share (no currency figure, via `getActiveProjectValuePercentageBreakdown`).
  */
 export async function getStaffDashboard(accessibleWarehouseIds: string[] | null) {
   const now = new Date();
@@ -398,6 +462,7 @@ export async function getStaffDashboard(accessibleWarehouseIds: string[] | null)
     topIssuedMaterialsThisMonth,
     lowStockMaterials,
     openIssues,
+    activeProjectValueBreakdown,
   ] = await Promise.all([
     countIssues({ ...issueWarehouseFilter, createdAt: { gte: weekStart } }),
     countIssues({ ...issueWarehouseFilter, createdAt: { gte: monthStart } }),
@@ -408,6 +473,7 @@ export async function getStaffDashboard(accessibleWarehouseIds: string[] | null)
     getTopIssuedMaterialsSince(accessibleWarehouseIds, monthStart),
     getLowStockMaterials(accessibleWarehouseIds),
     findIssues({ ...issueWarehouseFilter, status: { in: ["PENDING_APPROVAL", "APPROVED"] } }, 0, 10000),
+    getActiveProjectValuePercentageBreakdown(accessibleWarehouseIds),
   ]);
 
   const overdueIssuesCount = openIssues.filter((issue) => computeIsOverdue(issue)).length;
@@ -427,5 +493,6 @@ export async function getStaffDashboard(accessibleWarehouseIds: string[] | null)
     lowStockCount: lowStockMaterials.length,
     lowStockMaterials,
     overdueIssuesCount,
+    activeProjectValueBreakdown,
   };
 }

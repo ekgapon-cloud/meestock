@@ -1,9 +1,16 @@
 import type { Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 import { getAccessibleWarehouseIds } from "../services/accessControlService.js";
-import { getIssueHistoryReport, getSiteFinancialSummary, getStockValueReport } from "../services/reportingService.js";
+import {
+  getActiveProjectValuePercentageBreakdown,
+  getIssueHistoryReport,
+  getLowStockMaterials,
+  getSiteFinancialSummary,
+  getStockValueReport,
+} from "../services/reportingService.js";
 import {
   issueHistoryQuerySchema,
+  lowStockQuerySchema,
   siteFinancialSummaryQuerySchema,
   stockValueQuerySchema,
 } from "../validation/reportingSchema.js";
@@ -36,5 +43,22 @@ export async function getSiteFinancialSummaryHandler(req: Request, res: Response
   const query = siteFinancialSummaryQuerySchema.parse(req.query);
   const accessibleWarehouseIds = await getAccessibleWarehouseIds(user.id, user.accessLevel);
   const report = await getSiteFinancialSummary(accessibleWarehouseIds, query);
+  res.json(report);
+}
+
+/** No cost data — open to all authenticated users, unlike the reports above (see reportRoutes.ts). */
+export async function getLowStockReportHandler(req: Request, res: Response) {
+  const user = requireUser(req);
+  const query = lowStockQuerySchema.parse(req.query);
+  const accessibleWarehouseIds = await getAccessibleWarehouseIds(user.id, user.accessLevel);
+  const items = await getLowStockMaterials(accessibleWarehouseIds, query.warehouseId);
+  res.json({ items });
+}
+
+/** Percentage-only, no cost data — open to all authenticated users. */
+export async function getSiteProgressReportHandler(req: Request, res: Response) {
+  const user = requireUser(req);
+  const accessibleWarehouseIds = await getAccessibleWarehouseIds(user.id, user.accessLevel);
+  const report = await getActiveProjectValuePercentageBreakdown(accessibleWarehouseIds);
   res.json(report);
 }

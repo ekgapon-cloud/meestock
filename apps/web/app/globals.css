@@ -22,6 +22,18 @@
   --color-bar: #ddd3c2;
   --radius: 8px;
   --sidebar-w: 150px;
+  /* Categorical chart palette: fixed hue order, validated for CVD separation and
+     contrast against --color-surface (#fff) — see skills/dataviz. Never reassign
+     a slot by rank; a chart maps series to slots in a stable order (1..8) and
+     folds anything past 8 into "Other". */
+  --chart-series-1: #2a78d6; /* blue */
+  --chart-series-2: #1baf7a; /* aqua */
+  --chart-series-3: #eda100; /* yellow */
+  --chart-series-4: #008300; /* green */
+  --chart-series-5: #4a3aa7; /* violet */
+  --chart-series-6: #e34948; /* red */
+  --chart-series-7: #e87ba4; /* magenta */
+  --chart-series-8: #eb6834; /* orange */
 }
 
 * {
@@ -446,6 +458,114 @@ button:disabled {
   gap: 0.5rem;
 }
 
+/* Dashboard — compact donut widget (rail card) */
+.donut-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.donut-chart {
+  flex-shrink: 0;
+}
+
+.donut-legend-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.donut-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Dashboard — Ops Console layout */
+.ops-strip {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.ops-strip .stat-tile {
+  padding: 0.6rem 1rem;
+  min-width: 8rem;
+}
+
+.ops-strip .stat-value {
+  font-size: 1.2rem;
+}
+
+.ops-strip .stat-value.warn {
+  color: #92400e;
+}
+
+.ops-strip .stat-value.crit {
+  color: var(--color-danger);
+}
+
+.ops-grid {
+  display: grid;
+  grid-template-columns: 17rem 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.ops-rail,
+.ops-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.severity-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.severity-pill.warn {
+  background: var(--color-gold-bg-strong);
+  color: #92400e;
+}
+
+.severity-pill.crit {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.severity-row td:first-child {
+  position: relative;
+  padding-left: 1.1rem;
+}
+
+.severity-row td:first-child::before {
+  content: "";
+  position: absolute;
+  left: 0.4rem;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 3px;
+  border-radius: 2px;
+}
+
+.severity-row.warn td:first-child::before {
+  background: var(--color-gold);
+}
+
+.severity-row.crit td:first-child::before {
+  background: var(--color-danger);
+}
+
 .budget-bar-track {
   background: var(--color-bg);
   border-radius: 4px;
@@ -727,6 +847,16 @@ tr:last-child td {
   border: 1px solid var(--color-danger);
 }
 
+.status-planning {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.status-in_progress {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
 /* Material issue item picker */
 .items-field {
   border: 1px solid var(--color-border);
@@ -792,20 +922,71 @@ tr:last-child td {
   align-items: center;
 }
 
-.report-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+/* Reports hub — summary cards that drill into the existing detailed report pages */
+.report-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
-.report-links li {
+.report-hub-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 0.9rem 1.2rem;
+  padding: 1.1rem 1.2rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.report-hub-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(204, 8, 18, 0.08);
+}
+
+.report-hub-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.report-hub-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: -0.3rem;
+}
+
+.report-hub-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.report-hub-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.report-hub-stats > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.report-hub-stats-label {
+  color: var(--color-text-muted);
+}
+
+.report-hub-cta {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-primary);
 }
 
 /* Print */
@@ -923,6 +1104,14 @@ tr:last-child td {
     gap: 1rem;
   }
 
+  .ops-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-hub-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   table {
     display: block;
     overflow-x: auto;
@@ -943,6 +1132,10 @@ tr:last-child td {
   .bento-card-lg,
   .bento-card-wide {
     grid-column: span 1;
+  }
+
+  .report-hub-grid {
+    grid-template-columns: 1fr;
   }
 
   .page-header {

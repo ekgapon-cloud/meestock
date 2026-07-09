@@ -8,7 +8,8 @@ function formatDateTime(value: string) {
   return new Date(value).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
 }
 
-function formatCurrency(value: string) {
+function formatCurrency(value: string | null) {
+  if (value === null) return "-";
   return new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(Number(value));
 }
 

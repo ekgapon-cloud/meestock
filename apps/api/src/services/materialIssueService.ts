@@ -11,6 +11,7 @@ import {
   findIssueById,
   findIssues,
   findLatestDocNoWithPrefix,
+  groupIssuesByStatus,
   runInTransaction,
   updateIssue,
   updateIssueItem,
@@ -63,6 +64,14 @@ function buildWhere(
         : {}),
     ...(query.projectId ? { projectId: query.projectId } : {}),
     ...(query.status ? { status: query.status } : {}),
+    ...(query.dateFrom || query.dateTo
+      ? {
+          createdAt: {
+            ...(query.dateFrom ? { gte: query.dateFrom } : {}),
+            ...(query.dateTo ? { lte: query.dateTo } : {}),
+          },
+        }
+      : {}),
   };
 }
 
@@ -71,14 +80,25 @@ export async function listMaterialIssues(query: ListMaterialIssuesQuery, accessi
     assertWarehouseAccessible(query.warehouseId, accessibleWarehouseIds);
   }
   if (accessibleWarehouseIds !== null && accessibleWarehouseIds.length === 0) {
-    return { items: [], total: 0, page: query.page, limit: query.limit };
+    return { items: [], total: 0, page: query.page, limit: query.limit, summary: { countByStatus: {} } };
   }
 
   const where = buildWhere(query, accessibleWarehouseIds);
   const skip = (query.page - 1) * query.limit;
-  const [items, total] = await Promise.all([findIssues(where, skip, query.limit), countIssues(where)]);
+  const [items, total, statusGroups] = await Promise.all([
+    findIssues(where, skip, query.limit),
+    countIssues(where),
+    groupIssuesByStatus(where),
+  ]);
+  const countByStatus = Object.fromEntries(statusGroups.map((group) => [group.status, group._count._all]));
 
-  return { items: items.map(withOverdueFlag), total, page: query.page, limit: query.limit };
+  return {
+    items: items.map(withOverdueFlag),
+    total,
+    page: query.page,
+    limit: query.limit,
+    summary: { countByStatus },
+  };
 }
 
 export async function getMaterialIssue(id: string, accessibleWarehouseIds: string[] | null) {

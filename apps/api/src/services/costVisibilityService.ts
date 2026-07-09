@@ -19,11 +19,12 @@ export function redactCost<T extends Record<string, unknown>>(entity: T): T {
   } as unknown as T;
 }
 
-export function redactIssueCost<T extends Record<string, unknown> & { items: Record<string, unknown>[] }>(
-  issue: T,
+/** Generic over any items-array entity (MaterialIssue, GoodsReceive) — same shape, both need redaction. */
+export function redactItemsCost<T extends Record<string, unknown> & { items: Record<string, unknown>[] }>(
+  entity: T,
 ): T {
   return {
-    ...issue,
-    items: issue.items.map((item) => redactCost(item)),
+    ...entity,
+    items: entity.items.map((item) => redactCost(item)),
   } as T;
 }

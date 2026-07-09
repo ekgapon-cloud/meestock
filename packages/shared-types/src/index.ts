@@ -164,6 +164,7 @@ export interface MaterialIssueListResponse {
   total: number;
   page: number;
   limit: number;
+  summary: { countByStatus: Partial<Record<IssueStatus, number>> };
 }
 
 export type POStatus = "DRAFT" | "ORDERED" | "PARTIALLY_RECEIVED" | "RECEIVED" | "CANCELLED";
@@ -203,7 +204,8 @@ export interface GoodsReceiveItem {
   goodsReceiveId: string;
   materialId: string;
   quantity: string;
-  unitCost: string;
+  /** Redacted to null for STAFF accessLevel — see costVisibilityService. */
+  unitCost: string | null;
   material: Material;
 }
 
@@ -246,6 +248,24 @@ export interface StockValueReport {
   valueByWarehouse: { warehouseId: string; value: number }[];
 }
 
+/** No cost data — every authenticated user, including STAFF, can read this. */
+export interface StockBalanceReport {
+  items: { materialId: string; warehouseId: string; balance: number }[];
+}
+
+export interface LowStockItem {
+  materialId: string;
+  materialName: string;
+  warehouseId: string;
+  balance: number;
+  reorderPoint: number;
+}
+
+/** No cost data — every authenticated user, including STAFF, can read this. */
+export interface LowStockReport {
+  items: LowStockItem[];
+}
+
 export interface IssueHistoryReport {
   items: MaterialIssue[];
   total: number;
@@ -284,6 +304,23 @@ export interface AdminUserListResponse {
   limit: number;
 }
 
+export interface ActiveProjectValueSite {
+  warehouseId: string;
+  warehouseName: string;
+  projectId: string;
+  projectCode: string;
+  projectName: string;
+  status: ProjectStatus;
+  startDate: string;
+  endDate: string | null;
+  percentage: number;
+}
+
+/** Percentage only — no cost data, every authenticated user including STAFF can read this. */
+export interface SiteProgressReport {
+  sites: ActiveProjectValueSite[];
+}
+
 export interface ExecutiveDashboard {
   totalStockValue: number;
   stockValueByWarehouse: { warehouseId: string; value: number }[];
@@ -296,13 +333,12 @@ export interface ExecutiveDashboard {
     remainingQty: number;
   }[];
   topCostSites: { warehouseId: string; warehouseName: string | null; cost: number }[];
-  lowStockMaterials: {
-    materialId: string;
-    materialName: string;
-    warehouseId: string;
-    balance: number;
-    reorderPoint: number;
-  }[];
+  lowStockMaterials: LowStockItem[];
+  /** Money figures included — MANAGER/ADMIN accessLevel only, see costVisibilityService. */
+  activeProjectValueBreakdown: {
+    totalValue: number;
+    sites: (ActiveProjectValueSite & { value: number })[];
+  };
 }
 
 export interface StaffDashboard {
@@ -316,14 +352,12 @@ export interface StaffDashboard {
   topIssuedMaterialsThisWeek: { materialId: string; materialCode: string | null; materialName: string | null; issuedQty: number }[];
   topIssuedMaterialsThisMonth: { materialId: string; materialCode: string | null; materialName: string | null; issuedQty: number }[];
   lowStockCount: number;
-  lowStockMaterials: {
-    materialId: string;
-    materialName: string;
-    warehouseId: string;
-    balance: number;
-    reorderPoint: number;
-  }[];
+  lowStockMaterials: LowStockItem[];
   overdueIssuesCount: number;
+  /** Percentage only — no `value`/`totalValue`, since STAFF accessLevel must never see cost data. */
+  activeProjectValueBreakdown: {
+    sites: ActiveProjectValueSite[];
+  };
 }
 
 export interface SiteFinancialSummary {

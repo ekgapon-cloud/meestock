@@ -20,6 +20,11 @@ export const siteFinancialSummaryQuerySchema = z.object({
   dateTo: z.coerce.date().optional(),
 });
 
+export const lowStockQuerySchema = z.object({
+  warehouseId: z.string().min(1).optional(),
+});
+
 export type StockValueQuery = z.infer<typeof stockValueQuerySchema>;
 export type IssueHistoryQuery = z.infer<typeof issueHistoryQuerySchema>;
 export type SiteFinancialSummaryQuery = z.infer<typeof siteFinancialSummaryQuerySchema>;
+export type LowStockQuery = z.infer<typeof lowStockQuerySchema>;

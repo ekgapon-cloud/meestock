@@ -230,6 +230,17 @@ User ขอให้หน้ารายงานแสดงข้อมูล
 - Test เพิ่ม 1 เคส (getStockTransfer แปะ unitCost=15). `pnpm run test` ผ่าน 29/29. typecheck api+web สะอาด
 - **Verified E2E**: สร้างใบโอนจริงระหว่าง 2 คลังทดสอบ (คลังกลาง→ไซต์ทดสอบ, ไม่แตะ Project Landmark warehouse) → API detail คืน `unitCost`, web PDF route คืน 200 `application/pdf` (magic `%PDF-`, 1.37MB), หน้า detail 200 → **ลบใบโอน+ledger คืนเป๊ะ** (bal กลับเป็น 1, list ว่าง). PDF component render ใน isolation ไม่ได้เพราะ tsx ใช้ classic JSX runtime (ไม่ใช่บั๊ก — โครงเหมือน GoodsReceivePdf) เลยพิสูจน์ผ่าน route จริงแทน
 
+## นับสต๊อก / ปรับยอด (Stock Count) เสร็จ — กลุ่ม C (2026-07-10)
+ทำ StockCount/StockCountItem ที่มีใน schema (init migration) มาตั้งแต่แรกแต่ยังไม่มีโค้ด — user สั่ง "Going on C"
+- เอกสาร prefix `SC-` นับสต๊อกจริงของคลังหนึ่ง เก็บ `systemQty`(ยอดระบบ ณ ตอนนับ) vs `actualQty`(นับได้จริง) + `reason` ต่อรายการ → โพสต์ `ADJUSTMENT` ledger (`refDocType:"STOCK_COUNT"`, `quantityChange=actual−system`) **เฉพาะรายการที่ต่าง** valued ที่ weighted-avg cost ปัจจุบัน (capture ก่อน txn เหมือน transfer). systemQty คำนวณ **server-side ใน txn** (ไม่เชื่อ client) กัน stale ตอน concurrent
+- **business-rules §5**: ปรับยอดได้เฉพาะ Storekeeper/Admin → gate `POST` ด้วย `requireRole("WAREHOUSE")` (ADMIN bypass). ส่วนต่างต้องมี `reason` (validate ใน service เทียบ systemQty ที่คำนวณสด ไม่งั้น `VALIDATION_ERROR`). schema **ไม่มี status field** → ไม่มี approval flow แยก (สร้างโดย role ที่มีสิทธิ์ = การควบคุม)
+- decision จาก user: ฟอร์มนับ = **เฉพาะวัสดุมีสต็อก** (balance>0), reason **บังคับต่อรายการที่ต่าง**
+- API ครบทุกชั้น + endpoint พิเศษ `GET /stock-counts/count-sheet?warehouseId=` (คืน worksheet วัสดุมีสต็อก + systemQty + material แบบ trimmed **ไม่มี field ต้นทุน** เลยไม่มี leak) — ต้อง register **ก่อน** `/:id` ไม่งั้น param route กลืน. list/detail redact standardCost ให้ STAFF (`redactItemsCost`) เหมือนพี่น้อง
+- Web: `/stock-counts` (list) + `/new` (GET mini-form เลือกคลัง → fixed table server-rendered จาก count-sheet, actualQty default=systemQty + reason ต่อแถว, no client JS — `createStockCountAction` เป็น unbound action zip 3 array by index) + `/[id]` (detail โชว์ส่วนต่าง +/−) + PDF (`StockCountPdf` + route + ปุ่ม) + ลิงก์ sidebar (`IconClipboardCheck`) + shared-types (`StockCount`/`StockCountItem`/`StockCountListResponse`/`StockCountSheetRow`)
+- Test `stockCountWorkflow.test.ts` 7 เคส: adjustment บวก/ลบ, ไม่ต่าง=ไม่มี ledger, valued ที่ avg cost=15, บังคับ reason, `FORBIDDEN_SITE`, list/detail scope. `pnpm run test` ผ่าน **36/36**. typecheck api+web สะอาด
+- **Verified E2E 2 ทาง**: (1) curl API — count-sheet คืนถูก, POST create ส่วนต่าง +2 → balance 1→3, ADJUSTMENT เกิด, detail/PDF 200. (2) **Playwright browser จริง** — login→เลือกคลัง(GET)→count sheet โหลด→กรอก actual=4+reason→submit unbound action→redirect→detail โชว์ "+3"→PDF 200. **ลบใบทดสอบคืนยอดเป๊ะทุกครั้ง** (bal กลับ 1, list ว่าง) ไม่แตะ Project Landmark
+- Playwright รันได้ด้วย workaround libs ไม่ต้อง sudo (ดู auto-memory [[reference-playwright-no-sudo]])
+
 ## TODO / Open Questions
 - [x] ยืนยัน field ทั้งหมดใน schema — ตรงกับ `schema.prisma` จริงแล้ว
 - [x] Edge case ของ role — user ยืนยันแล้วว่าต้องการ role จัดซื้อ (`PURCHASING`) แยกจาก `WAREHOUSE`, implement เสร็จแล้วด้านบน
@@ -237,5 +248,5 @@ User ขอให้หน้ารายงานแสดงข้อมูล
 - [x] Barcode จริง vs `Material.code` — user ยืนยันแล้วว่าจะสแกนบาร์โค้ดผู้ผลิต (EAN/UPC), เพิ่ม field แยกและ implement เสร็จแล้วด้านบน
 - [x] Real-browser verification (4 unbound create-forms + print-CSS ×3) — ทำผ่าน Playwright แล้ว, เจอและแก้บั๊ก docNo generation ด้วย
 - [x] **Stock Transfer — real-browser verify (กลุ่ม B)** — Playwright ผ่านหมด (2026-07-10): login จริง → เลือก 2 คลัง → **พิมพ์รหัส `LM-0520` กด Enter เพิ่มรายการผ่าน `/api/materials/by-code`** → submit → redirect สำเร็จ (**พิสูจน์ว่า unbound `createStockTransferAction` ทำงานจริงในเบราว์เซอร์ ทั้งที่ curl ทดสอบไม่ได้**) → detail มีคอลัมน์ต้นทุน/มูลค่า + ปุ่ม PDF → โหลด PDF จริง 200 `application/pdf`. ลบใบทดสอบคืนยอดเป๊ะทุกครั้ง. **เหลือกล้องสแกน** (`CameraScanButton`/getUserMedia) ที่ headless เทสไม่ได้ (ไม่มีกล้องจำลอง) — แต่ share `lookupAndAdd()` ตัวเดียวกับ path พิมพ์รหัสที่เทสแล้ว เหลือแค่ส่วนเปิดกล้อง verify ด้วยมือ
-- [ ] **StockCount / StockCountItem (กลุ่ม C)**: โมเดลอยู่ใน schema (init migration) แต่ยัง**ไม่มีโค้ดใช้เลย** — ฟีเจอร์นับสต็อกจริง/ปรับยอด (doc `SC-`). ยังไม่ยืนยันกับ user ว่าจะทำหรือเป็น Phase 2
+- [x] **StockCount / StockCountItem (กลุ่ม C)** — ทำเสร็จ+verified (2026-07-10, ดูหัวข้อด้านล่าง)
 - [ ] ProjectCost / ProjectRevenue — Phase 2 ตาม CLAUDE.md, ยังไม่แตะ

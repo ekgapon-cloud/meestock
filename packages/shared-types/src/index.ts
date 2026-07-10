@@ -263,6 +263,45 @@ export interface StockTransferListResponse {
   limit: number;
 }
 
+export interface StockCountItem {
+  id: string;
+  stockCountId: string;
+  materialId: string;
+  /** Ledger balance captured at count time. */
+  systemQty: string;
+  /** Physically counted quantity. */
+  actualQty: string;
+  reason: string | null;
+  material: Material;
+}
+
+export interface StockCount {
+  id: string;
+  docNo: string;
+  date: string;
+  warehouseId: string;
+  editedById: string;
+  editedAt: string;
+  ipAddress?: string | null;
+  warehouse: Warehouse;
+  editedBy: EmployeeRef;
+  items: StockCountItem[];
+}
+
+export interface StockCountListResponse {
+  items: StockCount[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+/** One row of the count worksheet: a material currently in stock at a warehouse, with its system qty. */
+export interface StockCountSheetRow {
+  materialId: string;
+  systemQty: number;
+  material: { id: string; code: string; name: string; unit: string };
+}
+
 export interface StockValueItem {
   materialId: string;
   materialCode: string | null;

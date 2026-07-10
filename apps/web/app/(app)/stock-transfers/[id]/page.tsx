@@ -1,10 +1,15 @@
 import Link from "next/link";
 import type { StockTransfer } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
+import { DownloadPdfButton } from "../../DownloadPdfButton";
 import { Logo } from "../../../../components/Logo";
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
+}
+
+function formatCurrency(value: string | number) {
+  return new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(Number(value));
 }
 
 export default async function StockTransferDetailPage({ params }: { params: { id: string } }) {
@@ -19,6 +24,10 @@ export default async function StockTransferDetailPage({ params }: { params: { id
     throw err;
   }
 
+  // unitCost is present only when the viewer may see cost (API redacts it to null for STAFF).
+  const showCost = transfer.items.some((item) => item.unitCost != null);
+  const totalValue = transfer.items.reduce((sum, item) => sum + Number(item.unitCost ?? 0) * Number(item.quantity), 0);
+
   return (
     <div>
       <div className="page-header">
@@ -26,6 +35,7 @@ export default async function StockTransferDetailPage({ params }: { params: { id
           <Logo size={56} />
           <h1>{transfer.docNo}</h1>
         </div>
+        <DownloadPdfButton href={`/api/stock-transfers/${transfer.id}/pdf`} />
       </div>
 
       <div className="stat-grid">
@@ -53,6 +63,8 @@ export default async function StockTransferDetailPage({ params }: { params: { id
           <tr>
             <th>วัสดุ</th>
             <th>จำนวน</th>
+            {showCost && <th>ต้นทุน/หน่วย</th>}
+            {showCost && <th>มูลค่ารวม</th>}
           </tr>
         </thead>
         <tbody>
@@ -60,9 +72,21 @@ export default async function StockTransferDetailPage({ params }: { params: { id
             <tr key={item.id}>
               <td>{item.material.name}</td>
               <td>{item.quantity}</td>
+              {showCost && <td>{item.unitCost != null ? formatCurrency(item.unitCost) : "-"}</td>}
+              {showCost && (
+                <td>{item.unitCost != null ? formatCurrency(Number(item.unitCost) * Number(item.quantity)) : "-"}</td>
+              )}
             </tr>
           ))}
         </tbody>
+        {showCost && (
+          <tfoot>
+            <tr>
+              <td colSpan={3}>รวมมูลค่าที่โอน</td>
+              <td>{formatCurrency(totalValue)}</td>
+            </tr>
+          </tfoot>
+        )}
       </table>
 
       <p className="print-hide">

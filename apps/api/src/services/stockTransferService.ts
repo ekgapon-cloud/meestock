@@ -14,6 +14,7 @@ import {
   findLatestDocNoWithPrefix,
   findStockTransferById,
   findStockTransfers,
+  findTransferOutCosts,
   runInTransaction,
 } from "../repositories/stockTransferRepository.js";
 import type { CreateStockTransferInput, ListStockTransfersQuery } from "../validation/stockTransferSchema.js";
@@ -64,7 +65,15 @@ export async function getStockTransfer(id: string, accessibleWarehouseIds: strin
       throw new AppError("FORBIDDEN_SITE", "No access to this warehouse/site");
     }
   }
-  return transfer;
+
+  // The moved value is captured on the TRANSFER_OUT ledger rows; surface it per item so the detail
+  // view/PDF can show cost. Redaction for STAFF happens at the controller layer (canViewCost).
+  const costRows = await findTransferOutCosts(transfer.id);
+  const costByMaterialId = new Map(costRows.map((row) => [row.materialId, row.unitCost]));
+  return {
+    ...transfer,
+    items: transfer.items.map((item) => ({ ...item, unitCost: costByMaterialId.get(item.materialId) ?? null })),
+  };
 }
 
 async function generateDocNo(): Promise<string> {

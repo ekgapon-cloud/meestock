@@ -210,9 +210,32 @@ User ขอให้หน้ารายงานแสดงข้อมูล
 - typecheck (api+web) + build (web) + test (api, 20/20) ผ่านหมด
 - commit ไว้ในเครื่อง (local) เท่านั้น ยังไม่ push
 
+## โอนย้ายวัสดุระหว่างคลัง (Stock Transfer) เสร็จ (2026-07-10)
+ฟีเจอร์นี้ทำค้างไว้ตอนคอมฯ แฮ้ง+restart รอบก่อน — เซสชันนี้มาเช็คสถานะแล้วปิดงานให้จบ
+- เอกสารชนิดใหม่ prefix `TR-` ย้ายสต็อกจากคลังหนึ่งไปอีกคลัง ลง ledger คู่ `TRANSFER_OUT`(ต้นทาง, ลบ)/`TRANSFER_IN`(ปลายทาง, บวก) แบบ atomic ใน `$transaction` เดียว
+- **ต้นทุนเฉลี่ย**: capture weighted-average ของวัสดุที่คลังต้นทาง *ก่อน* ย้าย (replay จาก ledger ผ่าน `replayWeightedAverageCost`) แล้วแปะลงทั้ง 2 แถว — การโอนย้าย relocate มูลค่า ไม่ revalue (ตาม `skills/site-costing.md`)
+- API ครบทุกชั้น: `POST /stock-transfers` gated `WAREHOUSE`, list/detail มองเห็นได้ถ้าเข้าถึง endpoint ใดฝั่งหนึ่งได้ (`accessControlService`). Re-check ยอดคงเหลือใน txn กันโอนติดลบตอน 2 request แข่งกัน + `createWithDocNoRetry` กัน race docNo
+- Web: `/stock-transfers` (list/detail/new — 2 select คลัง + `TransferItemsField` แบบ barcode/manual เหมือน `ItemsField`) + ลิงก์ sidebar. หมายเหตุ: `createStockTransferAction` เป็น unbound action รับ `FormData` ตรง → curl-simulate no-JS fallback ไม่ได้ (ตาม Server Action wire-format gotcha ใน CLAUDE.md) เลย verify ผ่าน API layer ตรงแทน
+- **สำคัญ**: ตาราง `StockTransfer`/`StockTransferItem` อยู่ใน **init migration ตั้งแต่ 2026-07-06 อยู่แล้ว** (data model มีมาแต่แรก แค่เพิ่งมีโค้ดมาใช้) — `schema.prisma` ไม่ได้ถูกแก้ **ไม่ต้องทำ migration ใหม่**. ตอนเช็คแรกเข้าใจผิดว่าเป็นตารางใหม่ ต้องระวังจุดนี้
+- Test ใหม่ `stockTransferWorkflow.test.ts` (6 เคส): ledger movement + ยอด 2 คลัง, ยกต้นทุนเฉลี่ย=15 (ไม่ revalue), `INSUFFICIENT_STOCK`, กันคลังเดียวกัน (`VALIDATION_ERROR`), `FORBIDDEN_SITE`, list/detail scope. `pnpm run test` ผ่าน 28/28 (เดิม 22 + ใหม่ 6)
+- **Verified E2E จริงผ่าน HTTP stack** บน dev DB (Project Landmark 17500 → 17400, ปลายทาง 0 → 100, ledger ถูกต้อง, docNo `TR-20260710-0001`) แล้ว**ลบใบโอนทดสอบคืนเป๊ะ** (DELETE txn+item+transfer) เพื่อไม่ให้ข้อมูล source-of-truth เพี้ยน — verified ยอดกลับเป็น 17500/0 (unitCost=0 บนข้อมูลจริงตัวที่ทดสอบเพราะ import มาไม่มีต้นทุน ไม่ใช่บั๊ก)
+- typecheck (api+web) ผ่าน. commit ไว้ใน local (บน main) เท่านั้น ยังไม่ push ตามแพทเทิร์นเดิม
+
+### เก็บงานกลุ่ม A — ทำ Stock Transfer ให้เท่าพี่น้อง (2026-07-10, ต่อจากด้านบน)
+สำรวจแล้วพบว่าหน้า detail ของ stock-transfer ขาดของที่ MI/PO/GR มีครบ เลยเก็บ 3 จุด:
+- **PDF/พิมพ์**: เพิ่ม `lib/pdf/StockTransferPdf.tsx` + route `app/api/stock-transfers/[id]/pdf/route.ts` + ปุ่ม `DownloadPdfButton` บน detail (มิเรอร์ goods-receive เป๊ะ). คอลัมน์ต้นทุนใน PDF โผล่เฉพาะเมื่อมี `unitCost` (STAFF ถูก redact เป็น null)
+- **โชว์ต้นทุน/มูลค่าใน detail**: `StockTransferItem` เก็บแค่ `quantity` — ต้นทุนอยู่บน ledger row `TRANSFER_OUT` (refDoc polymorphic ไม่มี FK ให้ include). เพิ่ม `findTransferOutCosts()` ใน repo แล้ว service `getStockTransfer` แปะ `unitCost` ต่อ item (map by materialId, ต้นทุนเท่ากันทุกแถวของ material เดียวกัน). shared-types เพิ่ม `unitCost?: string | null`. หน้า detail โชว์คอลัมน์ต้นทุน/หน่วย + มูลค่ารวม + แถวรวม เฉพาะเมื่อ `unitCost != null`
+- **ปิด cost leak (บั๊กที่เจอระหว่างทาง)**: controller เดิม**ไม่ได้ redact cost เลย** → STAFF เห็น `material.standardCost` ใน list/detail ได้ (พี่น้องทุกตัว redact ที่ controller). แก้ให้ `listStockTransfersHandler`/`getStockTransferHandler` ใช้ `canViewCost`+`redactItemsCost` เหมือน materialIssueController
+- แก้ doc drift ใน CLAUDE.md: ของจริงคือ `DownloadPdfButton` (react-pdf, server-rendered) ไม่ใช่ `PrintButton`/`window.print()` เดิม (ถูกเปลี่ยนไปนานแล้ว) + เพิ่ม stock-transfer เข้า list หน้าที่มี PDF
+- Test เพิ่ม 1 เคส (getStockTransfer แปะ unitCost=15). `pnpm run test` ผ่าน 29/29. typecheck api+web สะอาด
+- **Verified E2E**: สร้างใบโอนจริงระหว่าง 2 คลังทดสอบ (คลังกลาง→ไซต์ทดสอบ, ไม่แตะ Project Landmark warehouse) → API detail คืน `unitCost`, web PDF route คืน 200 `application/pdf` (magic `%PDF-`, 1.37MB), หน้า detail 200 → **ลบใบโอน+ledger คืนเป๊ะ** (bal กลับเป็น 1, list ว่าง). PDF component render ใน isolation ไม่ได้เพราะ tsx ใช้ classic JSX runtime (ไม่ใช่บั๊ก — โครงเหมือน GoodsReceivePdf) เลยพิสูจน์ผ่าน route จริงแทน
+
 ## TODO / Open Questions
 - [x] ยืนยัน field ทั้งหมดใน schema — ตรงกับ `schema.prisma` จริงแล้ว
 - [x] Edge case ของ role — user ยืนยันแล้วว่าต้องการ role จัดซื้อ (`PURCHASING`) แยกจาก `WAREHOUSE`, implement เสร็จแล้วด้านบน
 - [x] SLA/ระยะเวลาแต่ละ stage — user ตัดสินใจแล้ว (badge-only, configurable ผ่าน env var), implement เสร็จแล้วด้านบน
 - [x] Barcode จริง vs `Material.code` — user ยืนยันแล้วว่าจะสแกนบาร์โค้ดผู้ผลิต (EAN/UPC), เพิ่ม field แยกและ implement เสร็จแล้วด้านบน
 - [x] Real-browser verification (4 unbound create-forms + print-CSS ×3) — ทำผ่าน Playwright แล้ว, เจอและแก้บั๊ก docNo generation ด้วย
+- [ ] **Stock Transfer — real-browser verify (กลุ่ม B)**: ฟอร์มสร้างใบโอน (`createStockTransferAction` เป็น unbound FormData action → curl ไม่ได้) + barcode/กล้องสแกนใน `TransferItemsField` ยังไม่ได้ลอง Playwright จริง (พี่น้องอีก 4 ฟอร์มทำแล้ว)
+- [ ] **StockCount / StockCountItem (กลุ่ม C)**: โมเดลอยู่ใน schema (init migration) แต่ยัง**ไม่มีโค้ดใช้เลย** — ฟีเจอร์นับสต็อกจริง/ปรับยอด (doc `SC-`). ยังไม่ยืนยันกับ user ว่าจะทำหรือเป็น Phase 2
+- [ ] ProjectCost / ProjectRevenue — Phase 2 ตาม CLAUDE.md, ยังไม่แตะ

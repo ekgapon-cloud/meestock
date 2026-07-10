@@ -76,6 +76,28 @@ describe("stock transfer — moving inventory between warehouses", () => {
     }
   });
 
+  it("exposes each item's carried unit cost on the fetched transfer detail", async () => {
+    const employee = await createEmployee({ role: "WAREHOUSE" });
+    const { warehouse: from } = await createProjectWarehouse();
+    const { warehouse: to } = await createProjectWarehouse();
+    const material = await createMaterial();
+
+    // 100 @ 10 + 100 @ 20 => weighted-average cost 15
+    await receiveStock({ warehouseId: from.id, materialId: material.id, quantity: 100, unitCost: 10 }, employee.id, undefined, null);
+    await receiveStock({ warehouseId: from.id, materialId: material.id, quantity: 100, unitCost: 20 }, employee.id, undefined, null);
+
+    const created = await createStockTransferWithValidation(
+      { fromWarehouseId: from.id, toWarehouseId: to.id, items: [{ materialId: material.id, quantity: 50 }] },
+      employee.id,
+      undefined,
+      null,
+    );
+
+    const fetched = await getStockTransfer(created.id, null);
+    expect(fetched.items).toHaveLength(1);
+    expect(Number(fetched.items[0]?.unitCost)).toBe(15);
+  });
+
   it("rejects a transfer that exceeds the source balance", async () => {
     const employee = await createEmployee({ role: "WAREHOUSE" });
     const { warehouse: from } = await createProjectWarehouse();

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 import { getAccessibleWarehouseIds } from "../services/accessControlService.js";
+import { canViewCost, redactItemsCost } from "../services/costVisibilityService.js";
 import {
   createStockTransferWithValidation,
   getStockTransfer,
@@ -20,14 +21,15 @@ export async function listStockTransfersHandler(req: Request, res: Response) {
   const query = listStockTransfersQuerySchema.parse(req.query);
   const accessibleWarehouseIds = await getAccessibleWarehouseIds(user.id, user.accessLevel);
   const result = await listStockTransfers(query, accessibleWarehouseIds);
-  res.json(result);
+  const items = canViewCost(user.accessLevel) ? result.items : result.items.map(redactItemsCost);
+  res.json({ ...result, items });
 }
 
 export async function getStockTransferHandler(req: Request, res: Response) {
   const user = requireUser(req);
   const accessibleWarehouseIds = await getAccessibleWarehouseIds(user.id, user.accessLevel);
   const transfer = await getStockTransfer(req.params["id"] as string, accessibleWarehouseIds);
-  res.json(transfer);
+  res.json(canViewCost(user.accessLevel) ? transfer : redactItemsCost(transfer));
 }
 
 export async function createStockTransferHandler(req: Request, res: Response) {

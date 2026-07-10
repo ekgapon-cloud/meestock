@@ -237,6 +237,8 @@ export interface StockTransferItem {
   stockTransferId: string;
   materialId: string;
   quantity: string;
+  /** Source warehouse's weighted-avg cost at move time (from the TRANSFER_OUT ledger row). null for STAFF or in list responses. */
+  unitCost?: string | null;
   material: Material;
 }
 

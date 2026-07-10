@@ -42,6 +42,18 @@ export function createStockTransfer(data: Prisma.StockTransferCreateInput, clien
   return client.stockTransfer.create({ data, include: stockTransferInclude });
 }
 
+/**
+ * The per-item captured cost lives on the TRANSFER_OUT ledger rows, not on StockTransferItem
+ * (refDoc is polymorphic, so there's no Prisma relation to `include`). One TRANSFER_OUT row exists
+ * per material moved, all carrying the source warehouse's weighted-average cost at move time.
+ */
+export function findTransferOutCosts(transferId: string, client: Client = prisma) {
+  return client.stockTransaction.findMany({
+    where: { refDocType: "STOCK_TRANSFER", refDocId: transferId, type: "TRANSFER_OUT" },
+    select: { materialId: true, unitCost: true },
+  });
+}
+
 export function runInTransaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
   return prisma.$transaction(fn);
 }

@@ -221,14 +221,14 @@ async function ExecutiveDashboardSection() {
               <table>
                 <thead>
                   <tr>
-                    <th>Warehouse ID</th>
+                    <th>โกดัง</th>
                     <th>มูลค่า</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dashboard.stockValueByWarehouse.map((row) => (
                     <tr key={row.warehouseId}>
-                      <td>{row.warehouseId}</td>
+                      <td>{row.warehouseName ?? row.warehouseId}</td>
                       <td>{formatCurrency(row.value)}</td>
                     </tr>
                   ))}

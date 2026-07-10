@@ -406,9 +406,15 @@ export async function getExecutiveDashboard(accessibleWarehouseIds: string[] | n
       getActiveProjectValueBreakdown(accessibleWarehouseIds),
     ]);
 
+  const warehouses = await findWarehousesByIds(stockValue.valueByWarehouse.map((row) => row.warehouseId));
+  const warehouseNameById = new Map(warehouses.map((w) => [w.id, w.name]));
+
   return {
     totalStockValue: stockValue.totalValue,
-    stockValueByWarehouse: stockValue.valueByWarehouse,
+    stockValueByWarehouse: stockValue.valueByWarehouse.map((row) => ({
+      ...row,
+      warehouseName: warehouseNameById.get(row.warehouseId) ?? null,
+    })),
     monthlyIssueTrend,
     topIssuedMaterials,
     topCostSites,

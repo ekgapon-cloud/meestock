@@ -323,7 +323,7 @@ export interface SiteProgressReport {
 
 export interface ExecutiveDashboard {
   totalStockValue: number;
-  stockValueByWarehouse: { warehouseId: string; value: number }[];
+  stockValueByWarehouse: { warehouseId: string; warehouseName: string | null; value: number }[];
   monthlyIssueTrend: { month: string; count: number; value: number }[];
   topIssuedMaterials: {
     materialId: string;

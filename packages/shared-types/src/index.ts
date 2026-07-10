@@ -101,6 +101,25 @@ export interface Project {
   status: ProjectStatus;
 }
 
+export interface Customer {
+  id: string;
+  name: string;
+  contact: string | null;
+}
+
+/** Project with its customer and SITE warehouses, as returned by the `/projects` list/detail endpoints. */
+export interface ProjectDetail extends Project {
+  customer: Customer;
+  warehouses: Warehouse[];
+}
+
+export interface ProjectListResponse {
+  items: ProjectDetail[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export type WarehouseType = "CENTRAL" | "SITE" | "TEMPORARY";
 
 export interface Warehouse {

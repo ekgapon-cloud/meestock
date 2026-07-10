@@ -22,7 +22,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="app-shell">
       <aside className="app-sidebar">
         <div className="brand">M.EE Warehouse</div>
-        <SidebarNav showUsers={me.accessLevel === "ADMIN"} />
+        <SidebarNav
+          showUsers={me.accessLevel === "ADMIN"}
+          showProjects={me.accessLevel === "ADMIN" || me.accessLevel === "MANAGER"}
+        />
         <div className="sidebar-user">
           <div className="sidebar-avatar">{initialsOf(me.name)}</div>
           <div className="sidebar-user-info">

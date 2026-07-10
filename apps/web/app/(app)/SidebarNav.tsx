@@ -10,6 +10,7 @@ import {
   IconPackageImport,
   IconArrowsExchange,
   IconClipboardCheck,
+  IconBuildingCommunity,
   IconReport,
   IconUsers,
   IconCategory,
@@ -22,7 +23,7 @@ type NavItem = {
   icon: ReactNode;
 };
 
-export function SidebarNav({ showUsers }: { showUsers: boolean }) {
+export function SidebarNav({ showUsers, showProjects }: { showUsers: boolean; showProjects: boolean }) {
   const pathname = usePathname();
 
   const items: NavItem[] = [
@@ -34,6 +35,9 @@ export function SidebarNav({ showUsers }: { showUsers: boolean }) {
     { href: "/goods-receives", label: "รับวัสดุ", icon: <IconPackageImport size={18} stroke={1.75} /> },
     { href: "/stock-transfers", label: "โอนย้ายระหว่างคลัง", icon: <IconArrowsExchange size={18} stroke={1.75} /> },
     { href: "/stock-counts", label: "นับสต๊อก", icon: <IconClipboardCheck size={18} stroke={1.75} /> },
+    ...(showProjects
+      ? [{ href: "/projects", label: "โครงการ", icon: <IconBuildingCommunity size={18} stroke={1.75} /> }]
+      : []),
     { href: "/reports", label: "รายงาน", icon: <IconReport size={18} stroke={1.75} /> },
     ...(showUsers ? [{ href: "/users", label: "ผู้ใช้งาน", icon: <IconUsers size={18} stroke={1.75} /> }] : []),
   ];

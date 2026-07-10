@@ -25,6 +25,7 @@ import type {
   RejectMaterialIssueInput,
 } from "../validation/materialIssueSchema.js";
 import { assertWarehouseAccessible } from "./accessControlService.js";
+import { assertProjectAcceptsIssues } from "./projectService.js";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -127,6 +128,8 @@ export async function createMaterialIssue(
   accessibleWarehouseIds: string[] | null,
 ) {
   assertWarehouseAccessible(input.warehouseId, accessibleWarehouseIds);
+  // A closed (COMPLETED/CANCELLED) project can't consume more stock.
+  await assertProjectAcceptsIssues(input.projectId);
 
   const materials = await Promise.all(input.items.map((item) => findMaterialById(item.materialId)));
   const itemsData: Prisma.MaterialIssueItemUncheckedCreateWithoutMaterialIssueInput[] = input.items.map((item, index) => {

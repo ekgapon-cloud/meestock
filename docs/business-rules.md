@@ -6,6 +6,7 @@
 2. ทุก transaction ที่กระทบสต๊อกต้องมี type ชัดเจน เช่น `RECEIVE`, `ISSUE`, `ADJUSTMENT`, `RETURN`, `TRANSFER`
 3. ห้ามลบ transaction ที่บันทึกไปแล้ว หากบันทึกผิดต้องสร้าง transaction ประเภท `ADJUSTMENT` เพื่อแก้ไข (reversal) พร้อมระบุเหตุผล
 4. ยอดคงเหลือต้องไม่ติดลบ เว้นแต่จะเปิด flag เฉพาะกรณี (เช่น backorder) ซึ่งต้องมีการอนุมัติพิเศษ
+5. **จำนวนวัสดุต้องเป็นจำนวนเต็ม (integer) เสมอ** ในทุกฟังก์ชัน — สั่งซื้อ (orderedQty), เบิก (requestedQty/approvedQty/issuedQty), รับของ (quantity), โอนย้าย (quantity), นับสต๊อก (actualQty), ปรับยอด (quantityChange). ห้ามกรอกทศนิยม. **ยกเว้นจำนวนเงิน** (unitCost, standardCost, contractValue, งบประมาณ) ที่กรอกทศนิยมได้ บังคับ 2 ชั้น: zod `.int()` ฝั่ง API + `step="1"` (และบล็อกปุ่ม `.`/`,`) ฝั่ง UI
 
 ## 2. กฎเรื่อง Material Issue Workflow (Multi-stage)
 

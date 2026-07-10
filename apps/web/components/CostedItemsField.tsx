@@ -119,10 +119,13 @@ export function CostedItemsField({ materials }: { materials: Material[] }) {
                   <input
                     type="number"
                     name="qty"
-                    min="0.01"
-                    step="0.01"
+                    min="1"
+                    step="1"
                     value={row.qty}
                     onChange={(event) => updateRow(row.materialId, "qty", Number(event.target.value))}
+                    onKeyDown={(event) => {
+                      if (event.key === "." || event.key === ",") event.preventDefault();
+                    }}
                   />
                 </td>
                 <td>

@@ -76,7 +76,7 @@ export default async function NewStockCountPage({
                     {row.systemQty} {row.material.unit}
                   </td>
                   <td>
-                    <input type="number" name="actualQty" min="0" step="0.01" defaultValue={row.systemQty} required />
+                    <input type="number" name="actualQty" min="0" step="1" defaultValue={row.systemQty} required />
                   </td>
                   <td>
                     <input type="text" name="reason" placeholder="เช่น วัสดุชำรุด, นับประจำเดือน" />

@@ -7,7 +7,7 @@ export const createPurchaseOrderSchema = z.object({
     .array(
       z.object({
         materialId: z.string().min(1),
-        orderedQty: z.coerce.number().positive(),
+        orderedQty: z.coerce.number().int().positive(),
         unitCost: z.coerce.number().nonnegative(),
       }),
     )

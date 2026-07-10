@@ -87,4 +87,5 @@ const prisma = new PrismaClient({ adapter });
 ## Conventions
 - TS strict mode; `nodenext`/ESM (`verbatimModuleSyntax`, `isolatedModules`) — relative imports need explicit `.js`.
 - Prisma schema = source of truth; all changes via `prisma migrate dev`, never manual DB edits or editing applied migrations.
+- **Material quantities are integers everywhere** (orderedQty/requestedQty/approvedQty/issuedQty/receive-quantity/transfer-quantity/actualQty/adjust-quantityChange) — enforced by zod `.int()` in each validation schema **and** `step="1"` + a `.`/`,` keydown-block on the qty inputs. **Money fields stay decimal** (unitCost/standardCost/contractValue/budgets). See `docs/business-rules.md` §1.5. Guard test: `test/quantityIntegerRule.test.ts`.
 - Full naming/layering/commit conventions: `skills/coding-standard.md`.

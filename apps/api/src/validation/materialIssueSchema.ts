@@ -8,7 +8,7 @@ export const createMaterialIssueSchema = z.object({
     .array(
       z.object({
         materialId: z.string().min(1),
-        requestedQty: z.coerce.number().positive(),
+        requestedQty: z.coerce.number().int().positive(),
       }),
     )
     .min(1),

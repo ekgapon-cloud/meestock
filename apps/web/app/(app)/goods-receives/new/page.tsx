@@ -96,7 +96,7 @@ export default async function NewGoodsReceivePage({
                         </td>
                         <td>{item.remaining}</td>
                         <td>
-                          <input type="number" name="qty" min="0" max={item.remaining} step="0.01" defaultValue={item.remaining} />
+                          <input type="number" name="qty" min="1" max={item.remaining} step="1" defaultValue={item.remaining} />
                         </td>
                         <td>
                           <input type="number" name="unitCost" min="0" step="0.01" defaultValue={item.unitCost} />

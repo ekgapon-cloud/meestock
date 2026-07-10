@@ -241,6 +241,14 @@ User ขอให้หน้ารายงานแสดงข้อมูล
 - **Verified E2E 2 ทาง**: (1) curl API — count-sheet คืนถูก, POST create ส่วนต่าง +2 → balance 1→3, ADJUSTMENT เกิด, detail/PDF 200. (2) **Playwright browser จริง** — login→เลือกคลัง(GET)→count sheet โหลด→กรอก actual=4+reason→submit unbound action→redirect→detail โชว์ "+3"→PDF 200. **ลบใบทดสอบคืนยอดเป๊ะทุกครั้ง** (bal กลับ 1, list ว่าง) ไม่แตะ Project Landmark
 - Playwright รันได้ด้วย workaround libs ไม่ต้อง sudo (ดู auto-memory [[reference-playwright-no-sudo]])
 
+## กฎจำนวนวัสดุเป็นจำนวนเต็มทุกฟังก์ชัน (2026-07-10)
+User สั่งก่อนเริ่มฟีเจอร์ project: จำนวนวัสดุต้องเป็น **integer ทุกที่** (สั่งซื้อ/เบิก/ย้าย/นับ/รับ/ปรับยอด) ยกเว้น**จำนวนเงิน**กรอกทศนิยมได้
+- **Backend**: เพิ่ม `.int()` ใน zod ทุก qty field — `orderedQty`, `requestedQty` (approved/issuedQty เป็น int อยู่แล้ว), receive `quantity`, adjust `quantityChange`, transfer `quantity`, goods-receive `quantity`, `actualQty`. คง decimal ที่ `unitCost`/`standardCost`/`contractValue`/budgets
+- **Frontend**: qty input เป็น `step="1"` + client component (ItemsField/CostedItemsField/TransferItemsField) เพิ่ม `onKeyDown` บล็อกปุ่ม `.`/`,` (ItemsField ของเบิกมี pattern นี้อยู่แล้ว เอาไป replicate). server-rendered (goods-receive/count) แค่ `step="1"`+`min`
+- guard test `quantityIntegerRule.test.ts` เทส schema ตรงๆ (integration tests เรียก service ข้าม zod). `pnpm run test` **42/42**. typecheck api+web สะอาด
+- verified สด: POST transfer qty=1.5 → 400, count actualQty=2.5 → 400, qty=1 → 201 (ลบคืน). บันทึกใน `docs/business-rules.md` §1.5 + CLAUDE.md Conventions
+- **หมายเหตุ**: PLAN ฟีเจอร์จัดการโครงการ (Project Management) เคาะ decision ครบแล้ว (project+สร้างคลังไซต์ในตัว / ปิดโครงการบล็อกเบิกใหม่ / ADMIN+MANAGER) เหลือยืนยัน "project code กรอกเองหรือ auto-gen" ก่อนลงมือ — ดูแผนเต็มใน transcript
+
 ## TODO / Open Questions
 - [x] ยืนยัน field ทั้งหมดใน schema — ตรงกับ `schema.prisma` จริงแล้ว
 - [x] Edge case ของ role — user ยืนยันแล้วว่าต้องการ role จัดซื้อ (`PURCHASING`) แยกจาก `WAREHOUSE`, implement เสร็จแล้วด้านบน

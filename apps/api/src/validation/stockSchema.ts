@@ -13,14 +13,14 @@ export const stockLedgerQuerySchema = stockBalanceQuerySchema.extend({
 export const receiveStockSchema = z.object({
   warehouseId: z.string().min(1),
   materialId: z.string().min(1),
-  quantity: z.coerce.number().positive(),
+  quantity: z.coerce.number().int().positive(),
   unitCost: z.coerce.number().nonnegative(),
 });
 
 export const adjustStockSchema = z.object({
   warehouseId: z.string().min(1),
   materialId: z.string().min(1),
-  quantityChange: z.coerce.number().refine((val) => val !== 0, "quantityChange must not be zero"),
+  quantityChange: z.coerce.number().int().refine((val) => val !== 0, "quantityChange must not be zero"),
   unitCost: z.coerce.number().nonnegative(),
   reason: z.string().min(1),
 });

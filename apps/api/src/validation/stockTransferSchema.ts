@@ -7,7 +7,7 @@ export const createStockTransferSchema = z.object({
     .array(
       z.object({
         materialId: z.string().min(1),
-        quantity: z.coerce.number().positive(),
+        quantity: z.coerce.number().int().positive(),
       }),
     )
     .min(1),

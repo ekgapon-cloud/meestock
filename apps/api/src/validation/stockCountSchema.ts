@@ -6,8 +6,8 @@ export const createStockCountSchema = z.object({
     .array(
       z.object({
         materialId: z.string().min(1),
-        // A physical count is an absolute quantity on the shelf — never negative.
-        actualQty: z.coerce.number().min(0),
+        // A physical count is an absolute, whole quantity on the shelf — never negative or fractional.
+        actualQty: z.coerce.number().int().min(0),
         reason: z.string().trim().min(1).optional(),
       }),
     )

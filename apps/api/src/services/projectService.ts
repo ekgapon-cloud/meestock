@@ -1,4 +1,4 @@
-import type { Prisma, ProjectStatus } from "@prisma/client";
+import type { AccessLevel, Prisma, ProjectStatus } from "@prisma/client";
 import { AppError } from "../errors/AppError.js";
 import {
   countProjects,
@@ -21,9 +21,14 @@ const OPEN_STATUSES: ProjectStatus[] = ["PLANNING", "IN_PROGRESS"];
 const ALLOWED_TRANSITIONS: Record<ProjectStatus, ProjectStatus[]> = {
   PLANNING: ["IN_PROGRESS", "CANCELLED"],
   IN_PROGRESS: ["COMPLETED", "CANCELLED"],
-  COMPLETED: [],
-  CANCELLED: [],
+  // A closed project can be reopened back to IN_PROGRESS to correct a mistaken close (ADMIN only).
+  COMPLETED: ["IN_PROGRESS"],
+  CANCELLED: ["IN_PROGRESS"],
 };
+
+function isReopen(from: ProjectStatus, to: ProjectStatus): boolean {
+  return (from === "COMPLETED" || from === "CANCELLED") && to === "IN_PROGRESS";
+}
 
 export async function listProjects(query: ListProjectsQuery) {
   const where: Prisma.ProjectWhereInput = query.status ? { status: query.status } : {};
@@ -67,7 +72,11 @@ export async function createProjectWithWarehouse(input: CreateProjectInput) {
   });
 }
 
-export async function updateProjectStatus(id: string, input: UpdateProjectStatusInput) {
+export async function updateProjectStatus(
+  id: string,
+  input: UpdateProjectStatusInput,
+  actorAccessLevel: AccessLevel,
+) {
   const project = await findProjectById(id);
   if (!project) {
     throw new AppError("NOT_FOUND", "Project not found");
@@ -78,11 +87,17 @@ export async function updateProjectStatus(id: string, input: UpdateProjectStatus
   if (!ALLOWED_TRANSITIONS[project.status].includes(input.status)) {
     throw new AppError("INVALID_WORKFLOW_STATE", `Cannot transition project from ${project.status} to ${input.status}`);
   }
+  // Reopening a closed project is a correction — restrict it to ADMIN.
+  if (isReopen(project.status, input.status) && actorAccessLevel !== "ADMIN") {
+    throw new AppError("FORBIDDEN_ROLE", "Only ADMIN can reopen a closed project");
+  }
 
-  // Stamp the end date when a project completes, if one wasn't set manually.
   const data: Prisma.ProjectUpdateInput = { status: input.status };
+  // Stamp the end date when a project completes, if one wasn't set manually; clear it on reopen.
   if (input.status === "COMPLETED" && !project.endDate) {
     data.endDate = new Date();
+  } else if (isReopen(project.status, input.status)) {
+    data.endDate = null;
   }
   return updateProject(id, data);
 }

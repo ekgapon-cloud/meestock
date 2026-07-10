@@ -45,9 +45,9 @@ export async function createProjectHandler(req: Request, res: Response) {
 }
 
 export async function updateProjectStatusHandler(req: Request, res: Response) {
-  requireUser(req);
+  const user = requireUser(req);
   const input = updateProjectStatusSchema.parse(req.body);
-  res.json(await updateProjectStatus(req.params["id"] as string, input));
+  res.json(await updateProjectStatus(req.params["id"] as string, input, user.accessLevel));
 }
 
 export async function updateProjectHandler(req: Request, res: Response) {

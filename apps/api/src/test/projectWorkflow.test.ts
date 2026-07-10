@@ -53,10 +53,10 @@ describe("project management", () => {
   it("follows the status state machine and stamps endDate on completion", async () => {
     const project = await createProjectWithWarehouse(baseInput());
 
-    const started = await updateProjectStatus(project.id, { status: "IN_PROGRESS" });
+    const started = await updateProjectStatus(project.id, { status: "IN_PROGRESS" }, "ADMIN");
     expect(started.status).toBe("IN_PROGRESS");
 
-    const completed = await updateProjectStatus(project.id, { status: "COMPLETED" });
+    const completed = await updateProjectStatus(project.id, { status: "COMPLETED" }, "ADMIN");
     expect(completed.status).toBe("COMPLETED");
     expect(completed.endDate).not.toBeNull();
   });
@@ -64,15 +64,31 @@ describe("project management", () => {
   it("rejects an illegal status transition", async () => {
     const project = await createProjectWithWarehouse(baseInput());
     // PLANNING -> COMPLETED skips IN_PROGRESS
-    await expect(updateProjectStatus(project.id, { status: "COMPLETED" })).rejects.toMatchObject({
+    await expect(updateProjectStatus(project.id, { status: "COMPLETED" }, "ADMIN")).rejects.toMatchObject({
       code: "INVALID_WORKFLOW_STATE",
     } satisfies Partial<AppError>);
   });
 
-  it("cannot transition out of a terminal status", async () => {
+  it("reopens a closed project back to IN_PROGRESS, clearing endDate (ADMIN only)", async () => {
     const project = await createProjectWithWarehouse(baseInput());
-    await updateProjectStatus(project.id, { status: "CANCELLED" });
-    await expect(updateProjectStatus(project.id, { status: "IN_PROGRESS" })).rejects.toMatchObject({
+    await updateProjectStatus(project.id, { status: "IN_PROGRESS" }, "ADMIN");
+    await updateProjectStatus(project.id, { status: "COMPLETED" }, "ADMIN");
+
+    // MANAGER cannot reopen
+    await expect(updateProjectStatus(project.id, { status: "IN_PROGRESS" }, "MANAGER")).rejects.toMatchObject({
+      code: "FORBIDDEN_ROLE",
+    } satisfies Partial<AppError>);
+
+    const reopened = await updateProjectStatus(project.id, { status: "IN_PROGRESS" }, "ADMIN");
+    expect(reopened.status).toBe("IN_PROGRESS");
+    expect(reopened.endDate).toBeNull();
+  });
+
+  it("still rejects a non-reopen transition out of a terminal status", async () => {
+    const project = await createProjectWithWarehouse(baseInput());
+    await updateProjectStatus(project.id, { status: "CANCELLED" }, "ADMIN");
+    // CANCELLED -> COMPLETED is not a valid reopen, still illegal
+    await expect(updateProjectStatus(project.id, { status: "COMPLETED" }, "ADMIN")).rejects.toMatchObject({
       code: "INVALID_WORKFLOW_STATE",
     } satisfies Partial<AppError>);
   });
@@ -94,7 +110,7 @@ describe("project management", () => {
 
     it("blocks a material issue to a closed (cancelled/completed) project", async () => {
       const { project, warehouse } = await createProjectWarehouse();
-      await updateProjectStatus(project.id, { status: "CANCELLED" });
+      await updateProjectStatus(project.id, { status: "CANCELLED" }, "ADMIN");
       const requester = await createEmployee({ role: "REQUESTER" });
       const material = await createMaterial();
 
@@ -111,8 +127,8 @@ describe("project management", () => {
     it("assertProjectAcceptsIssues throws only for closed projects", async () => {
       const { project } = await createProjectWarehouse();
       await expect(assertProjectAcceptsIssues(project.id)).resolves.toBeUndefined();
-      await updateProjectStatus(project.id, { status: "IN_PROGRESS" });
-      await updateProjectStatus(project.id, { status: "COMPLETED" });
+      await updateProjectStatus(project.id, { status: "IN_PROGRESS" }, "ADMIN");
+      await updateProjectStatus(project.id, { status: "COMPLETED" }, "ADMIN");
       await expect(assertProjectAcceptsIssues(project.id)).rejects.toMatchObject({
         code: "INVALID_WORKFLOW_STATE",
       } satisfies Partial<AppError>);

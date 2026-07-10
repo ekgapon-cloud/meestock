@@ -236,6 +236,6 @@ User ขอให้หน้ารายงานแสดงข้อมูล
 - [x] SLA/ระยะเวลาแต่ละ stage — user ตัดสินใจแล้ว (badge-only, configurable ผ่าน env var), implement เสร็จแล้วด้านบน
 - [x] Barcode จริง vs `Material.code` — user ยืนยันแล้วว่าจะสแกนบาร์โค้ดผู้ผลิต (EAN/UPC), เพิ่ม field แยกและ implement เสร็จแล้วด้านบน
 - [x] Real-browser verification (4 unbound create-forms + print-CSS ×3) — ทำผ่าน Playwright แล้ว, เจอและแก้บั๊ก docNo generation ด้วย
-- [ ] **Stock Transfer — real-browser verify (กลุ่ม B)**: ฟอร์มสร้างใบโอน (`createStockTransferAction` เป็น unbound FormData action → curl ไม่ได้) + barcode/กล้องสแกนใน `TransferItemsField` ยังไม่ได้ลอง Playwright จริง (พี่น้องอีก 4 ฟอร์มทำแล้ว)
+- [x] **Stock Transfer — real-browser verify (กลุ่ม B)** — Playwright ผ่านหมด (2026-07-10): login จริง → เลือก 2 คลัง → **พิมพ์รหัส `LM-0520` กด Enter เพิ่มรายการผ่าน `/api/materials/by-code`** → submit → redirect สำเร็จ (**พิสูจน์ว่า unbound `createStockTransferAction` ทำงานจริงในเบราว์เซอร์ ทั้งที่ curl ทดสอบไม่ได้**) → detail มีคอลัมน์ต้นทุน/มูลค่า + ปุ่ม PDF → โหลด PDF จริง 200 `application/pdf`. ลบใบทดสอบคืนยอดเป๊ะทุกครั้ง. **เหลือกล้องสแกน** (`CameraScanButton`/getUserMedia) ที่ headless เทสไม่ได้ (ไม่มีกล้องจำลอง) — แต่ share `lookupAndAdd()` ตัวเดียวกับ path พิมพ์รหัสที่เทสแล้ว เหลือแค่ส่วนเปิดกล้อง verify ด้วยมือ
 - [ ] **StockCount / StockCountItem (กลุ่ม C)**: โมเดลอยู่ใน schema (init migration) แต่ยัง**ไม่มีโค้ดใช้เลย** — ฟีเจอร์นับสต็อกจริง/ปรับยอด (doc `SC-`). ยังไม่ยืนยันกับ user ว่าจะทำหรือเป็น Phase 2
 - [ ] ProjectCost / ProjectRevenue — Phase 2 ตาม CLAUDE.md, ยังไม่แตะ

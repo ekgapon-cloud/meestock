@@ -21,8 +21,11 @@ function lowStockSeverity(balance: number, reorderPoint: number): "warn" | "crit
   return balance <= reorderPoint * 0.3 ? "crit" : "warn";
 }
 
+/** Mirrors the backend gate on /dashboard/executive: requireRole("EXECUTIVE") is bypassed for
+ * ADMIN/MANAGER accessLevel, and requireAccessLevel("MANAGER","ADMIN") then strictly requires
+ * one of those two — so access reduces to accessLevel alone, role is irrelevant. */
 function isExecutiveViewer(me: Me) {
-  return me.role === "EXECUTIVE" && (me.accessLevel === "MANAGER" || me.accessLevel === "ADMIN");
+  return me.accessLevel === "MANAGER" || me.accessLevel === "ADMIN";
 }
 
 export default async function DashboardPage() {

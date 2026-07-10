@@ -8,6 +8,7 @@ import {
   IconClipboardList,
   IconTruckDelivery,
   IconPackageImport,
+  IconArrowsExchange,
   IconReport,
   IconUsers,
   IconCategory,
@@ -30,6 +31,7 @@ export function SidebarNav({ showUsers }: { showUsers: boolean }) {
     { href: "/material-issues", label: "คำขอเบิกวัสดุ", icon: <IconClipboardList size={18} stroke={1.75} /> },
     { href: "/purchase-orders", label: "ใบสั่งซื้อ", icon: <IconTruckDelivery size={18} stroke={1.75} /> },
     { href: "/goods-receives", label: "รับวัสดุ", icon: <IconPackageImport size={18} stroke={1.75} /> },
+    { href: "/stock-transfers", label: "โอนย้ายระหว่างคลัง", icon: <IconArrowsExchange size={18} stroke={1.75} /> },
     { href: "/reports", label: "รายงาน", icon: <IconReport size={18} stroke={1.75} /> },
     ...(showUsers ? [{ href: "/users", label: "ผู้ใช้งาน", icon: <IconUsers size={18} stroke={1.75} /> }] : []),
   ];

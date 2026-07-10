@@ -232,6 +232,35 @@ export interface GoodsReceiveListResponse {
   limit: number;
 }
 
+export interface StockTransferItem {
+  id: string;
+  stockTransferId: string;
+  materialId: string;
+  quantity: string;
+  material: Material;
+}
+
+export interface StockTransfer {
+  id: string;
+  docNo: string;
+  date: string;
+  fromWarehouseId: string;
+  toWarehouseId: string;
+  createdById: string;
+  createdAt: string;
+  fromWarehouse: Warehouse;
+  toWarehouse: Warehouse;
+  createdBy: EmployeeRef;
+  items: StockTransferItem[];
+}
+
+export interface StockTransferListResponse {
+  items: StockTransfer[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface StockValueItem {
   materialId: string;
   materialCode: string | null;

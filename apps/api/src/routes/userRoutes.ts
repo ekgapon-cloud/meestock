@@ -3,6 +3,7 @@ import {
   assignSiteAccessHandler,
   createUserHandler,
   getUserHandler,
+  listLoginEventsHandler,
   listUsersHandler,
   resetUserPasswordHandler,
   revokeSiteAccessHandler,
@@ -19,6 +20,8 @@ userRouter.use(authenticate);
 userRouter.use(requireAccessLevel("ADMIN"));
 
 userRouter.get("/", asyncHandler(listUsersHandler));
+// Registered before "/:id" so the literal path isn't captured as an id param.
+userRouter.get("/login-events", asyncHandler(listLoginEventsHandler));
 userRouter.get("/:id", asyncHandler(getUserHandler));
 userRouter.post("/", asyncHandler(createUserHandler));
 userRouter.patch("/:id", asyncHandler(updateUserHandler));

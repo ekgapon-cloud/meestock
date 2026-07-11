@@ -37,9 +37,14 @@ export default async function UsersPage({
     <div>
       <div className="page-header">
         <h1>ผู้ใช้งาน</h1>
-        <Link href="/users/new" className="btn-primary">
-          + เพิ่มผู้ใช้งาน
-        </Link>
+        <div className="page-header-actions">
+          <Link href="/users/login-events" className="btn-secondary">
+            ประวัติการเข้าสู่ระบบ
+          </Link>
+          <Link href="/users/new" className="btn-primary">
+            + เพิ่มผู้ใช้งาน
+          </Link>
+        </div>
       </div>
 
       <form className="search-form" action="/users">

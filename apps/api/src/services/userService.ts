@@ -10,11 +10,13 @@ import {
   findEmployees,
   updateEmployee,
 } from "../repositories/employeeRepository.js";
+import { countLoginEvents, findLoginEvents } from "../repositories/loginEventRepository.js";
 import { createSiteAccess, deleteSiteAccess } from "../repositories/userSiteAccessRepository.js";
 import { findWarehouseById } from "../repositories/warehouseRepository.js";
 import type {
   AssignSiteAccessInput,
   CreateUserInput,
+  ListLoginEventsQuery,
   ListUsersQuery,
   ResetPasswordInput,
   UpdateUserInput,
@@ -125,4 +127,24 @@ export async function revokeSiteAccess(id: string, warehouseId: string) {
   await getUser(id);
   await deleteSiteAccess(id, warehouseId);
   return getUser(id);
+}
+
+export async function listLoginEvents(query: ListLoginEventsQuery) {
+  const where: Prisma.LoginEventWhereInput = {
+    ...(query.success !== undefined ? { success: query.success === "true" } : {}),
+    ...(query.search
+      ? {
+          OR: [
+            { email: { contains: query.search, mode: "insensitive" } },
+            { employee: { is: { name: { contains: query.search, mode: "insensitive" } } } },
+          ],
+        }
+      : {}),
+  };
+  const skip = (query.page - 1) * query.limit;
+  const [items, total] = await Promise.all([
+    findLoginEvents(where, skip, query.limit),
+    countLoginEvents(where),
+  ]);
+  return { items, total, page: query.page, limit: query.limit };
 }

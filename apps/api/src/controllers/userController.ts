@@ -4,6 +4,7 @@ import {
   assignSiteAccess,
   createUser,
   getUser,
+  listLoginEvents,
   listUsers,
   resetUserPassword,
   revokeSiteAccess,
@@ -13,6 +14,7 @@ import {
 import {
   assignSiteAccessSchema,
   createUserSchema,
+  listLoginEventsQuerySchema,
   listUsersQuerySchema,
   resetPasswordSchema,
   updateUserRoleSchema,
@@ -29,6 +31,12 @@ function requireUser(req: Request) {
 export async function listUsersHandler(req: Request, res: Response) {
   const query = listUsersQuerySchema.parse(req.query);
   const result = await listUsers(query);
+  res.json(result);
+}
+
+export async function listLoginEventsHandler(req: Request, res: Response) {
+  const query = listLoginEventsQuerySchema.parse(req.query);
+  const result = await listLoginEvents(query);
   res.json(result);
 }
 

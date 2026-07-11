@@ -193,6 +193,24 @@ model Employee {
   transactions      StockTransaction[]     @relation("TxPerformer")
   sellingPricesSet  ProjectMaterialPrice[] @relation("PriceSetter")
   siteAccess        UserSiteAccess[]
+  loginEvents       LoginEvent[]
+}
+
+// An audit trail of login attempts (successful and failed) so an admin can see who is
+// using the system and spot suspicious activity. employeeId is null when the attempted
+// email matches no account; the attempted email is always recorded.
+model LoginEvent {
+  id         String    @id @default(cuid())
+  employeeId String?
+  employee   Employee? @relation(fields: [employeeId], references: [id])
+  email      String
+  success    Boolean
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([employeeId])
 }
 
 // ---------- Access Control ----------

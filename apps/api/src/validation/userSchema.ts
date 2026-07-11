@@ -39,9 +39,18 @@ export const assignSiteAccessSchema = z.object({
   warehouseId: z.string().min(1),
 });
 
+export const listLoginEventsQuerySchema = z.object({
+  // "true"/"false" string rather than z.coerce.boolean() — coercion treats "false" as true.
+  success: z.enum(["true", "false"]).optional(),
+  search: z.string().min(1).optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(50),
+});
+
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 export type AssignSiteAccessInput = z.infer<typeof assignSiteAccessSchema>;
+export type ListLoginEventsQuery = z.infer<typeof listLoginEventsQuerySchema>;

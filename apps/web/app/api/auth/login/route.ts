@@ -19,9 +19,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // Forward the real client IP and browser user-agent so the backend's login audit log records
+  // the actual user, not this BFF server. Vercel sets x-forwarded-for on the incoming request.
+  const clientIp = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip");
+  const userAgent = request.headers.get("user-agent");
+
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(clientIp ? { "x-forwarded-for": clientIp } : {}),
+      ...(userAgent ? { "user-agent": userAgent } : {}),
+    },
     body: JSON.stringify({ email, password }),
     cache: "no-store",
   });

@@ -393,6 +393,23 @@ export interface AdminUserListResponse {
   limit: number;
 }
 
+export interface LoginEvent {
+  id: string;
+  email: string;
+  success: boolean;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: string;
+  employee: EmployeeRef | null;
+}
+
+export interface LoginEventListResponse {
+  items: LoginEvent[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface ActiveProjectValueSite {
   warehouseId: string;
   warehouseName: string;

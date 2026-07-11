@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma.js";
 // Listed only for readability; TRUNCATE ... CASCADE in one statement resolves
 // FK ordering itself, so this doesn't need to be topologically sorted.
 const TABLES = [
+  "LoginEvent",
   "StockTransaction",
   "MaterialIssueItem",
   "MaterialIssue",

@@ -6,7 +6,16 @@ import { changePasswordSchema, loginSchema } from "../validation/authSchema.js";
 
 export async function loginHandler(req: Request, res: Response) {
   const input = loginSchema.parse(req.body);
-  const result = await login(input);
+  // The browser talks to the Next BFF, which forwards the real client IP/UA on to us; take the
+  // first X-Forwarded-For entry (original client) and fall back to req.ip.
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const ipAddress =
+    (typeof forwardedFor === "string" ? forwardedFor.split(",")[0]?.trim() : undefined) || req.ip;
+  const userAgent = req.headers["user-agent"];
+  const result = await login(input, {
+    ...(ipAddress ? { ipAddress } : {}),
+    ...(typeof userAgent === "string" ? { userAgent } : {}),
+  });
   res.json(result);
 }
 

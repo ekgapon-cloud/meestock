@@ -4,6 +4,10 @@
 
 > ปรับปรุงล่าสุด: 2026-07-11
 
+> 📗 **นี่คือคู่มือฉบับเต็ม (ทุกบทบาทรวมกัน)** เหมาะสำหรับผู้ดูแล/ผู้ฝึกอบรม
+> ถ้าต้องการคู่มือเฉพาะหน้าที่ของคุณคนเดียว เลือกได้ที่ [คู่มือแยกตามบทบาท (user-manual/)](user-manual/README.md):
+> [ผู้ขอเบิก](user-manual/requester.md) · [ผู้อนุมัติ](user-manual/approver.md) · [เจ้าหน้าที่คลัง](user-manual/warehouse.md) · [ฝ่ายจัดซื้อ](user-manual/purchasing.md) · [ผู้บริหาร/ผู้จัดการ](user-manual/executive.md) · [ผู้ดูแลระบบ](user-manual/admin.md)
+
 ---
 
 ## สารบัญ

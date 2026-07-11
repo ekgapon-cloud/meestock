@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>คู่มือ - ฝ่ายจัดซื้อ</title>
+<style>
+  body { font-family: "TH Sarabun New", "Sarabun", "Tahoma", sans-serif; font-size: 15pt; color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 24pt; border-bottom: 2px solid #333; padding-bottom: 6px; }
+  h2 { font-size: 19pt; margin-top: 18pt; color: #0b3d66; }
+  h3 { font-size: 16pt; margin-top: 14pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+  th, td { border: 1px solid #999; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #eef3f7; }
+  code { font-family: "Consolas", monospace; background: #f2f2f2; padding: 1px 4px; }
+  pre { background: #f6f8fa; border: 1px solid #ddd; padding: 8px; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #b7c7d6; margin: 8pt 0; padding: 4pt 12pt; background: #f6f9fc; color: #33475b; }
+  a { color: #0b5cad; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 12pt 0; }
+</style>
+</head>
+<body>
+<h1>คู่มือสำหรับ ฝ่ายจัดซื้อ (Purchasing)</h1>
+<blockquote>บทบาทของคุณ: <strong>สร้างและจัดการใบสั่งซื้อ (PO)</strong> จากซัพพลายเออร์<br>เมนูที่คุณใช้: Dashboard · Materials · ใบสั่งซื้อ · รายงาน · บัญชีของฉัน</blockquote>
+<hr>
+<h2>เริ่มต้นใช้งาน</h2>
+<ol><li>เปิดเว็บระบบ → กรอก <strong>อีเมล</strong> และ <strong>รหัสผ่าน</strong> → กด <strong>เข้าสู่ระบบ</strong></li><li>เปลี่ยนรหัสผ่านตัวเอง: กดที่ชื่อตัวเองมุมล่างซ้าย → <strong>บัญชีของฉัน</strong></li></ol>
+<hr>
+<h2>หน้าที่หลักของคุณ</h2>
+<h3>1) สร้างใบสั่งซื้อ (เมนู ใบสั่งซื้อ → สร้าง)</h3>
+<ol><li>กด <strong>สร้างใบสั่งซื้อ</strong></li><li>เลือก <strong>ซัพพลายเออร์</strong></li><li>เพิ่มรายการวัสดุ (สแกนบาร์โค้ด / พิมพ์รหัส / กล้องมือถือ) พร้อม:</li></ol>
+<ul><li><strong>จำนวนที่สั่ง</strong> (จำนวนเต็ม)</li><li><strong>ราคาทุนต่อหน่วย</strong> (ใส่ทศนิยมได้)</li></ul>
+<ol><li>บันทึก → ใบสั่งซื้ออยู่สถานะ <strong>"ร่าง" (DRAFT)</strong></li></ol>
+<h3>2) ยืนยันการสั่งซื้อ</h3>
+<ul><li>เปิด PO ที่เป็นร่าง → กด <strong>"สั่งแล้ว" (ORDERED)</strong> เมื่อส่งคำสั่งซื้อไปยังซัพพลายเออร์แล้ว</li><li>หลังจากนี้ <strong>เจ้าหน้าที่คลัง</strong>จะเป็นผู้รับของเข้าระบบ (คนละหน้าที่กับคุณ)</li></ul>
+<h3>3) ติดตามสถานะใบสั่งซื้อ</h3>
+<table><thead><tr><th>สถานะ</th><th>ความหมาย</th></tr></thead><tbody><tr><td>ร่าง (DRAFT)</td><td>สร้างไว้ ยังไม่ได้สั่ง</td></tr><tr><td>สั่งแล้ว (ORDERED)</td><td>ส่งคำสั่งซื้อแล้ว รอรับของ</td></tr><tr><td>รับบางส่วน</td><td>คลังรับของมาแล้วบางส่วน (อัตโนมัติ)</td></tr><tr><td>รับครบ</td><td>รับของครบตามยอดสั่ง (อัตโนมัติ)</td></tr><tr><td>ยกเลิก (CANCELLED)</td><td>ยกเลิกใบสั่งซื้อ</td></tr></tbody></table>
+<ul><li>สถานะ "รับบางส่วน/รับครบ" ระบบคำนวณให้เองจากยอดที่คลังรับจริง</li><li>พิมพ์ใบสั่งซื้อเป็น PDF ได้จากหน้ารายละเอียด</li></ul>
+<hr>
+<h2>ข้อควรรู้</h2>
+<ul><li><strong>การรับของไม่ใช่หน้าที่คุณ</strong> — เป็นงานของเจ้าหน้าที่คลัง (แยกกันเพื่อการควบคุมภายใน)</li><li>จำนวนสั่งซื้อต้องเป็น<strong>จำนวนเต็ม</strong> แต่<strong>ราคาใส่ทศนิยมได้</strong></li><li>ทุกใบสั่งซื้อมีเลขที่รันอัตโนมัติ (PO-)</li></ul>
+<hr>
+<h2>คำถามที่พบบ่อย</h2>
+<p><strong>แก้ไข PO หลังสั่งแล้วได้ไหม?</strong> สถานะจะเดินตามลำดับ (ร่าง→สั่งแล้ว→รับ...) หากต้องแก้ให้พิจารณายกเลิกแล้วออกใหม่ หรือประสานผู้ดูแลระบบ<br><strong>ของมาเกินยอดสั่ง?</strong> ระบบกันไม่ให้คลังรับเกิน หากจำเป็นต้องปรับ ให้แก้ที่ใบสั่งซื้อ<br><strong>สั่งของโดยไม่มี PO ได้ไหม?</strong> ระบบรองรับการ "รับของแบบไม่มี PO" ที่ฝั่งคลัง แต่การจัดซื้ออย่างเป็นทางการควรออก PO</p>
+</body>
+</html>

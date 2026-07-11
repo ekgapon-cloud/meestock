@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>คู่มือ - ผู้บริหาร/ผู้จัดการ</title>
+<style>
+  body { font-family: "TH Sarabun New", "Sarabun", "Tahoma", sans-serif; font-size: 15pt; color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 24pt; border-bottom: 2px solid #333; padding-bottom: 6px; }
+  h2 { font-size: 19pt; margin-top: 18pt; color: #0b3d66; }
+  h3 { font-size: 16pt; margin-top: 14pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+  th, td { border: 1px solid #999; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #eef3f7; }
+  code { font-family: "Consolas", monospace; background: #f2f2f2; padding: 1px 4px; }
+  pre { background: #f6f8fa; border: 1px solid #ddd; padding: 8px; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #b7c7d6; margin: 8pt 0; padding: 4pt 12pt; background: #f6f9fc; color: #33475b; }
+  a { color: #0b5cad; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 12pt 0; }
+</style>
+</head>
+<body>
+<h1>คู่มือสำหรับ ผู้บริหาร / ผู้จัดการ (Executive / Manager)</h1>
+<blockquote>บทบาทของคุณ: <strong>ดูภาพรวมเชิงบริหาร ต้นทุน/มูลค่า และจัดการโครงการ</strong><br>เมนูที่คุณใช้: Dashboard · รายงาน (รวมการเงิน) · โครงการ · และเมนูปฏิบัติงานทั่วไป · บัญชีของฉัน<br>สิทธิ์ข้อมูล: ระดับ <strong>MANAGER</strong> — <strong>เห็นต้นทุนและมูลค่าได้</strong> (ต่างจากพนักงานทั่วไป)</blockquote>
+<hr>
+<h2>เริ่มต้นใช้งาน</h2>
+<ol><li>เปิดเว็บระบบ → กรอก <strong>อีเมล</strong> และ <strong>รหัสผ่าน</strong> → กด <strong>เข้าสู่ระบบ</strong></li><li>เปลี่ยนรหัสผ่านตัวเอง: กดที่ชื่อตัวเองมุมล่างซ้าย → <strong>บัญชีของฉัน</strong></li></ol>
+<hr>
+<h2>หน้าที่หลักของคุณ</h2>
+<h3>1) Dashboard เชิงบริหาร</h3>
+<p>หน้าแรกสรุปภาพรวม รวมข้อมูลเชิงมูลค่าที่พนักงานทั่วไปไม่เห็น</p>
+<h3>2) รายงาน (เมนู รายงาน)</h3>
+<p><strong>รายงานทั่วไป</strong></p>
+<ul><li>สต๊อกคงเหลือ · วัสดุต่ำกว่าจุดสั่งซื้อ · กิจกรรมการเบิกจ่าย · กิจกรรมการรับวัสดุ · สัดส่วนสต๊อกตามไซต์</li></ul>
+<p><strong>รายงานการเงิน</strong> (เฉพาะผู้บริหาร/ผู้จัดการ)</p>
+<ul><li><strong>มูลค่าสต๊อก</strong> — คำนวณต้นทุนถัวเฉลี่ยถ่วงน้ำหนักจริงจากประวัติทั้งหมด (ไม่ใช่ค่าเฉลี่ยแบบง่าย)</li><li><strong>ประวัติการเบิกจ่าย</strong> — พร้อมมูลค่าที่เบิกไป</li><li><strong>สรุปการเงินตามไซต์งาน</strong> — ยอดคงเหลือ / เบิกใช้ / รับเข้า แยกตามไซต์</li></ul>
+<blockquote>กรองช่วงเวลา/เงื่อนไขได้ในแต่ละรายงาน และดูรายไซต์ได้</blockquote>
+<h3>3) จัดการโครงการ (เมนู โครงการ)</h3>
+<ul><li><strong>ดูรายการโครงการ</strong> พร้อมงบประมาณ มูลค่าสัญญา ลูกค้า และคลังของโครงการ</li><li><strong>สร้างโครงการใหม่:</strong> ระบบสร้างโครงการ + ลูกค้า (เลือกเดิมหรือสร้างใหม่ในตัว) + คลังไซต์ ให้พร้อมกันในครั้งเดียว</li><li><strong>เปลี่ยนสถานะโครงการ:</strong></li></ul>
+<pre><code>  วางแผน → กำลังดำเนินการ → เสร็จสิ้น
+                    └──────────→ ยกเลิก</code></pre>
+<ul><li><strong>ปิดโครงการปลอดภัย:</strong> เมื่อกด "เสร็จสิ้น" หรือ "ยกเลิก" ระบบจะให้ <strong>ยืนยันอีกครั้ง</strong> ก่อน (กดครั้งเดียวไม่ปิดทันที กันกดพลาด)</li></ul>
+<hr>
+<h2>ข้อควรรู้</h2>
+<ul><li><strong>โครงการที่ปิด/ยกเลิกแล้ว จะเบิกวัสดุใหม่เข้าโครงการนั้นไม่ได้</strong> (การปิดเป็นการหยุดรับเบิกใหม่ ไม่ได้ลบข้อมูล)</li><li><strong>การเปิดโครงการที่ปิดไปแล้วกลับมา (Reopen) ทำได้เฉพาะ ADMIN</strong> — หากปิดผิดให้แจ้งผู้ดูแลระบบ</li><li>คุณเห็นเมนูโครงการเพราะสิทธิ์ระดับ MANAGER (พนักงานทั่วไปไม่เห็น)</li><li>คุณ <strong>ไม่มีสิทธิ์จัดการผู้ใช้</strong> (เป็นของ ADMIN)</li></ul>
+<hr>
+<h2>คำถามที่พบบ่อย</h2>
+<p><strong>ปิดโครงการผิด?</strong> แจ้ง ADMIN ให้กด Reopen — เปิดกลับได้ทั้งหมด ไม่มีข้อมูลหาย<br><strong>ตัวเลขมูลค่าสต๊อกมาจากไหน?</strong> คำนวณจากประวัติการรับ-จ่ายจริงทุกครั้งด้วยต้นทุนถัวเฉลี่ยถ่วงน้ำหนัก จึงสะท้อนต้นทุนจริง<br><strong>สร้างโครงการแล้วต้องสร้างคลังแยกอีกไหม?</strong> ไม่ต้อง ระบบสร้างคลังไซต์ให้พร้อมกับโครงการอัตโนมัติ</p>
+</body>
+</html>

@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>คู่มือ - ผู้ดูแลระบบ</title>
+<style>
+  body { font-family: "TH Sarabun New", "Sarabun", "Tahoma", sans-serif; font-size: 15pt; color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 24pt; border-bottom: 2px solid #333; padding-bottom: 6px; }
+  h2 { font-size: 19pt; margin-top: 18pt; color: #0b3d66; }
+  h3 { font-size: 16pt; margin-top: 14pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+  th, td { border: 1px solid #999; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #eef3f7; }
+  code { font-family: "Consolas", monospace; background: #f2f2f2; padding: 1px 4px; }
+  pre { background: #f6f8fa; border: 1px solid #ddd; padding: 8px; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #b7c7d6; margin: 8pt 0; padding: 4pt 12pt; background: #f6f9fc; color: #33475b; }
+  a { color: #0b5cad; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 12pt 0; }
+</style>
+</head>
+<body>
+<h1>คู่มือสำหรับ ผู้ดูแลระบบ (Admin)</h1>
+<blockquote>บทบาทของคุณ: <strong>สิทธิ์สูงสุด</strong> — ทำได้ทุกอย่างในระบบ และดูแลผู้ใช้/สิทธิ์<br>เมนูที่คุณใช้: ทุกเมนู รวมถึง <strong>ผู้ใช้งาน</strong> ที่มีเฉพาะ ADMIN<br>สิทธิ์ข้อมูล: ระดับ <strong>ADMIN</strong> — เห็นทุกคลัง เห็นต้นทุน และข้ามข้อจำกัด Role ได้ทั้งหมด</blockquote>
+<hr>
+<h2>เริ่มต้นใช้งาน</h2>
+<ol><li>เปิดเว็บระบบ → กรอก <strong>อีเมล</strong> และ <strong>รหัสผ่าน</strong> → กด <strong>เข้าสู่ระบบ</strong></li><li>เปลี่ยนรหัสผ่านตัวเอง: กดที่ชื่อตัวเองมุมล่างซ้าย → <strong>บัญชีของฉัน</strong></li></ol>
+<blockquote>ในฐานะ ADMIN คุณทำงานของทุกบทบาทได้ (เบิก/อนุมัติ/รับ/จ่าย/โอน/นับ/จัดซื้อ/โครงการ) — ดูรายละเอียดแต่ละงานได้ในคู่มือของบทบาทนั้น หน้านี้เน้น <strong>งานเฉพาะของ Admin</strong></blockquote>
+<hr>
+<h2>งานเฉพาะของ Admin</h2>
+<h3>1) จัดการผู้ใช้งาน (เมนู ผู้ใช้งาน)</h3>
+<ul><li><strong>เพิ่มผู้ใช้ใหม่:</strong> กำหนดชื่อ อีเมล รหัสผ่านเริ่มต้น</li><li><strong>กำหนดสิทธิ์ 2 มิติ:</strong></li><li><strong>Role</strong> (หน้าที่งาน): REQUESTER / APPROVER / WAREHOUSE / PURCHASING / EXECUTIVE</li><li><strong>Access Level</strong> (ระดับข้อมูล): STAFF / MANAGER / ADMIN</li><li><strong>กำหนดคลัง/ไซต์ที่เข้าถึงได้</strong> ให้แต่ละคน (จำกัดการมองเห็นตามไซต์)</li><li><strong>แก้ไข / ปิดใช้งานบัญชี</strong></li></ul>
+<h3>2) ตั้งรหัสผ่านใหม่ให้ผู้ใช้ (กรณีลืมรหัส)</h3>
+<ol><li>เมนู <strong>ผู้ใช้งาน</strong> → เลือกผู้ใช้</li><li>ส่วน <strong>"ตั้งรหัสผ่านใหม่ให้ผู้ใช้นี้"</strong> → กรอกรหัสใหม่ → บันทึก</li><li>แจ้งรหัสใหม่ให้ผู้ใช้ แล้วแนะนำให้เขาเปลี่ยนเองอีกครั้ง</li></ol>
+<blockquote>⚠️ <strong>ระบบแสดงรหัสผ่านเดิมของใครไม่ได้ แม้แต่ Admin</strong> — รหัสถูกเก็บแบบเข้ารหัสทางเดียว (bcrypt) ถอดกลับไม่ได้ ทำได้เพียง <strong>ตั้งรหัสใหม่ทับ</strong> เท่านั้น ซึ่งครอบคลุมทุกกรณีช่วยผู้ใช้ที่เข้าระบบไม่ได้ และปลอดภัยกว่าการเก็บรหัสจริง (ถ้าฐานข้อมูลรั่ว รหัสทุกคนจะไม่หลุด)</blockquote>
+<h3>3) เปิดโครงการที่ปิดไปแล้วกลับมา (Reopen) — เฉพาะ Admin</h3>
+<ul><li>โครงการที่ "เสร็จสิ้น/ยกเลิก" หากปิดผิด → เปิดหน้าโครงการ → กด <strong>เปิดโครงการกลับ</strong></li><li>โครงการกลับมาสถานะ "กำลังดำเนินการ" และเบิกวัสดุได้ตามปกติ (การปิดไม่ได้ลบข้อมูล จึงย้อนได้ครบ)</li></ul>
+<hr>
+<h2>ข้อควรรู้ (ความปลอดภัย)</h2>
+<ul><li><strong>กันล็อกตัวเอง:</strong> คุณลดสิทธิ์ตัวเองต่ำกว่า ADMIN หรือปิดบัญชีตัวเองไม่ได้ (ป้องกันระบบไม่มี Admin เหลือ) — ในหน้าจอ ช่องเหล่านี้จะถูกปิดไว้เมื่อดูบัญชีตัวเอง</li><li><strong>แยกหน้าที่ (Separation of Duties):</strong> ระบบตั้งใจแยกฝ่ายจัดซื้อ (ออก PO) ออกจากคลัง (รับของ) — ควรกำหนด Role ให้ผู้ใช้ตามหน้าที่จริง ไม่ควรตั้งทุกคนเป็น ADMIN</li><li><strong>STAFF ไม่เห็นต้นทุน</strong> เป็นค่าเริ่มต้นที่ปลอดภัย — ให้ MANAGER เฉพาะผู้ที่ต้องเห็นข้อมูลการเงิน</li><li>ทุกการเคลื่อนไหวสต๊อกถูกบันทึกเป็นบัญชีเดินสต๊อกที่ย้อนแก้ไม่ได้ — ตรวจสอบย้อนกลับได้เสมอ</li></ul>
+<hr>
+<h2>คำถามที่พบบ่อย</h2>
+<p><strong>อยากให้ผู้ใช้เห็นราคา?</strong> ปรับ Access Level เป็น MANAGER<br><strong>พนักงานเห็นเมนูไม่ครบ?</strong> ปกติ — เมนูแสดงตามสิทธิ์ (โครงการ = MANAGER/ADMIN, ผู้ใช้งาน = ADMIN)<br><strong>อยากจำกัดให้เห็นเฉพาะบางไซต์?</strong> ตั้งค่า "คลัง/ไซต์ที่เข้าถึงได้" ในหน้าผู้ใช้ (ADMIN เห็นทุกไซต์เสมอ)<br><strong>ต้องดูแลระบบตอน deploy?</strong> เครื่อง/container ที่ build เว็บควรมี RAM ว่างพอ (≥ 1 GB) ไม่งั้น Next.js อาจ prerender timeout</p>
+</body>
+</html>

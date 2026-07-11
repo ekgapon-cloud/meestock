@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>คู่มือ - เจ้าหน้าที่คลัง</title>
+<style>
+  body { font-family: "TH Sarabun New", "Sarabun", "Tahoma", sans-serif; font-size: 15pt; color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 24pt; border-bottom: 2px solid #333; padding-bottom: 6px; }
+  h2 { font-size: 19pt; margin-top: 18pt; color: #0b3d66; }
+  h3 { font-size: 16pt; margin-top: 14pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+  th, td { border: 1px solid #999; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #eef3f7; }
+  code { font-family: "Consolas", monospace; background: #f2f2f2; padding: 1px 4px; }
+  pre { background: #f6f8fa; border: 1px solid #ddd; padding: 8px; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #b7c7d6; margin: 8pt 0; padding: 4pt 12pt; background: #f6f9fc; color: #33475b; }
+  a { color: #0b5cad; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 12pt 0; }
+</style>
+</head>
+<body>
+<h1>คู่มือสำหรับ เจ้าหน้าที่คลัง (Warehouse)</h1>
+<blockquote>บทบาทของคุณ: <strong>ดูแลของเข้า-ออกคลัง</strong> — รับวัสดุ จ่ายวัสดุ โอนย้าย นับสต๊อก และดูแลข้อมูลวัสดุ/หมวดหมู่<br>เมนูที่คุณใช้: Dashboard · Materials · หมวดหมู่วัสดุ · คำขอเบิกวัสดุ · รับวัสดุ · โอนย้ายระหว่างคลัง · นับสต๊อก · รายงาน · บัญชีของฉัน</blockquote>
+<hr>
+<h2>เริ่มต้นใช้งาน</h2>
+<ol><li>เปิดเว็บระบบ → กรอก <strong>อีเมล</strong> และ <strong>รหัสผ่าน</strong> → กด <strong>เข้าสู่ระบบ</strong></li><li>เปลี่ยนรหัสผ่านตัวเอง: กดที่ชื่อตัวเองมุมล่างซ้าย → <strong>บัญชีของฉัน</strong></li></ol>
+<hr>
+<h2>หน้าที่หลักของคุณ</h2>
+<h3>1) รับวัสดุเข้าคลัง (เมนู รับวัสดุ)</h3>
+<p><strong>กรณีมีใบสั่งซื้อ (PO):</strong></p>
+<ol><li>กดสร้างการรับ → เลือก <strong>คลัง</strong> และ <strong>ใบสั่งซื้อ (PO)</strong></li><li>ระบบแสดงเฉพาะรายการที่ยังค้างรับ พร้อมจำนวนคงเหลือ</li><li>กรอก <strong>จำนวนที่รับจริง</strong> (เป็นจำนวนเต็ม, <strong>รับเกินยอดสั่งไม่ได้</strong>)</li><li>บันทึก → ของเข้าสต๊อก และสถานะ PO อัปเดตอัตโนมัติ (รับบางส่วน/รับครบ)</li></ol>
+<p><strong>กรณีไม่มี PO:</strong></p>
+<ul><li>เลือก <strong>ซัพพลายเออร์</strong> แล้วเพิ่มรายการวัสดุเอง (สแกน/พิมพ์รหัส) พร้อมจำนวนและราคาทุน</li></ul>
+<h3>2) จ่ายวัสดุตามคำขอเบิก (เมนู คำขอเบิกวัสดุ)</h3>
+<ol><li>เปิดแถบ <strong>"อนุมัติแล้ว"</strong> — คือคำขอที่ผ่านการอนุมัติ รอจ่ายของ</li><li>เปิดคำขอ → กด <strong>จ่ายวัสดุ</strong></li><li>ระบบตัดสต๊อกออกจากคลังทันที</li></ol>
+<ul><li>ถ้าของพอ → สถานะ <strong>"จ่ายแล้ว"</strong></li><li>ถ้าของไม่พอ → จ่ายได้เท่าที่มี (<strong>"จ่ายบางส่วน"</strong>) ระบบบันทึกยอดที่ขาด — ใส่หมายเหตุได้</li></ul>
+<h3>3) โอนย้ายระหว่างคลัง (เมนู โอนย้ายระหว่างคลัง)</h3>
+<ol><li>กดสร้างใบโอน → เลือก <strong>คลังต้นทาง</strong> และ <strong>คลังปลายทาง</strong></li><li>เพิ่มรายการวัสดุ (สแกน/พิมพ์รหัส) + จำนวน (จำนวนเต็ม)</li><li>บันทึก → ระบบตัดของออกจากต้นทางและเพิ่มเข้าปลายทางพร้อมกัน</li></ol>
+<p>*(ต้นทุนของเดิมถูกยกยอดติดไปด้วย — เป็นการย้ายมูลค่า ไม่ใช่ตีราคาใหม่)*</p>
+<h3>4) นับสต๊อก / ปรับยอด (เมนู นับสต๊อก)</h3>
+<ol><li>กดเริ่มนับ → เลือก <strong>คลัง</strong></li><li>ระบบสร้างใบนับของวัสดุที่มีในคลังนั้น พร้อมแสดง <strong>ยอดตามระบบ</strong></li><li>เดินนับจริง แล้วกรอก <strong>จำนวนจริง</strong> ที่นับได้ในแต่ละรายการ (ค่าเริ่มต้น = ยอดระบบ)</li><li>รายการไหนไม่ตรงต้อง <strong>ระบุเหตุผล</strong> (บังคับ)</li><li>บันทึก → ระบบปรับยอดเฉพาะรายการที่ต่าง</li></ol>
+<h3>5) ดูแลข้อมูลวัสดุและหมวดหมู่</h3>
+<ul><li><strong>Materials:</strong> เพิ่ม / แก้ไข / ปิดการใช้งานวัสดุ (การปิดเป็น soft delete — ข้อมูลเดิมยังอยู่)</li><li><strong>หมวดหมู่วัสดุ:</strong> สร้าง / เปลี่ยนชื่อ / ลบ (ลบไม่ได้ถ้ายังมีวัสดุใช้หมวดนั้นอยู่)</li></ul>
+<hr>
+<h2>ข้อควรรู้</h2>
+<ul><li><strong>จำนวนวัสดุต้องเป็นจำนวนเต็มเสมอ</strong> ทุกช่อง (รับ/จ่าย/โอน/นับ)</li><li><strong>สต๊อกติดลบไม่ได้</strong> — จ่าย/โอนเกินยอดคงเหลือไม่ได้</li><li>ทุกการเคลื่อนไหวถูกบันทึกเป็นบัญชีเดินสต๊อกที่ย้อนแก้ไม่ได้ (ตรวจสอบย้อนกลับได้)</li><li>ทุกเอกสารมีเลขที่รันอัตโนมัติ (GR- รับของ, TR- โอน, SC- นับ) และพิมพ์ PDF ได้</li><li>หากบัญชีคุณเป็นระดับ STAFF จะไม่เห็นราคาทุน — ทำงานคลังได้ตามปกติ</li></ul>
+<hr>
+<h2>คำถามที่พบบ่อย</h2>
+<p><strong>รับของเกินยอดสั่งไม่ได้?</strong> ถูกต้อง ระบบกันไว้ ถ้าของมาเกินจริงให้ประสานฝ่ายจัดซื้อแก้ PO<br><strong>จ่ายของแล้วผิด?</strong> สต๊อกตัดแล้วแก้ย้อนไม่ได้โดยตรง ต้องใช้การรับเข้า/นับสต๊อกปรับยอด — ประสานผู้ดูแลระบบ<br><strong>นับสต๊อกทำไมบางวัสดุไม่ขึ้น?</strong> ใบนับแสดงเฉพาะวัสดุที่มีสต๊อกในคลังนั้น</p>
+</body>
+</html>

@@ -189,6 +189,44 @@ button:disabled {
   background: var(--color-bg);
 }
 
+.manual-hint {
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.manual-download {
+  margin-bottom: 0.75rem;
+}
+
+.manual-more {
+  margin-bottom: 1.5rem;
+}
+
+.manual-more > summary {
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+}
+
+.manual-list {
+  list-style: none;
+  padding: 0.5rem 0 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.manual-list a {
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.manual-list a:hover {
+  text-decoration: underline;
+}
+
 .error-banner {
   background: var(--color-danger-bg);
   color: var(--color-danger);

@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>คู่มือ - ผู้ขอเบิกวัสดุ</title>
+<style>
+  body { font-family: "TH Sarabun New", "Sarabun", "Tahoma", sans-serif; font-size: 15pt; color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 24pt; border-bottom: 2px solid #333; padding-bottom: 6px; }
+  h2 { font-size: 19pt; margin-top: 18pt; color: #0b3d66; }
+  h3 { font-size: 16pt; margin-top: 14pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+  th, td { border: 1px solid #999; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #eef3f7; }
+  code { font-family: "Consolas", monospace; background: #f2f2f2; padding: 1px 4px; }
+  pre { background: #f6f8fa; border: 1px solid #ddd; padding: 8px; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #b7c7d6; margin: 8pt 0; padding: 4pt 12pt; background: #f6f9fc; color: #33475b; }
+  a { color: #0b5cad; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 12pt 0; }
+</style>
+</head>
+<body>
+<h1>คู่มือสำหรับ ผู้ขอเบิกวัสดุ (Requester)</h1>
+<blockquote>บทบาทของคุณ: <strong>ขอเบิกวัสดุไปใช้หน้างาน</strong> และติดตามสถานะคำขอ<br>เมนูที่คุณใช้: Dashboard · Materials · คำขอเบิกวัสดุ · รายงาน · บัญชีของฉัน</blockquote>
+<hr>
+<h2>เริ่มต้นใช้งาน</h2>
+<ol><li>เปิดเว็บระบบ → กรอก <strong>อีเมล</strong> และ <strong>รหัสผ่าน</strong> ที่ได้รับ → กด <strong>เข้าสู่ระบบ</strong></li><li>ออกจากระบบ: ปุ่ม <strong>ออกจากระบบ</strong> มุมล่างซ้าย</li><li>เปลี่ยนรหัสผ่านตัวเอง: กดที่ชื่อตัวเองมุมล่างซ้าย → <strong>บัญชีของฉัน</strong> → กรอกรหัสเดิม + รหัสใหม่ (อย่างน้อย 8 ตัว) + ยืนยัน</li></ol>
+<hr>
+<h2>หน้าที่หลักของคุณ</h2>
+<h3>1) ค้นหาวัสดุ (เมนู Materials)</h3>
+<ul><li>ค้นหาด้วยชื่อ/รหัสวัสดุ หรือ <strong>สแกนบาร์โค้ด</strong> ได้</li><li>ดูได้ว่าวัสดุมีอะไรบ้าง อยู่หมวดไหน</li><li>*หมายเหตุ:* คุณจะ<strong>ไม่เห็นราคาทุน</strong>ของวัสดุ (เป็นไปตามสิทธิ์ระดับ STAFF)</li></ul>
+<h3>2) สร้างคำขอเบิกวัสดุ (เมนู คำขอเบิกวัสดุ → สร้าง)</h3>
+<ol><li>กด <strong>สร้างคำขอเบิก</strong></li><li>เพิ่มรายการวัสดุ ได้ 3 วิธี:</li></ol>
+<ul><li><strong>สแกนบาร์โค้ด</strong> ด้วยเครื่องสแกน</li><li><strong>พิมพ์รหัสวัสดุ</strong> แล้วกดเพิ่ม</li><li><strong>สแกนด้วยกล้องมือถือ</strong> (ปุ่มกล้อง)</li></ul>
+<ol><li>ใส่ <strong>จำนวน</strong> ที่ต้องการ (ต้องเป็น<strong>จำนวนเต็ม</strong> — ใส่ทศนิยมไม่ได้)</li><li>ระบุโครงการ/ไซต์ที่จะใช้</li><li>กด <strong>ส่งคำขอ</strong> → คำขอจะอยู่สถานะ <strong>"รออนุมัติ"</strong></li></ol>
+<h3>3) ติดตามสถานะคำขอ</h3>
+<p>เปิดเมนู <strong>คำขอเบิกวัสดุ</strong> จะเห็นแถบสถานะ:</p>
+<table><thead><tr><th>สถานะ</th><th>ความหมาย</th></tr></thead><tbody><tr><td>รออนุมัติ</td><td>รอผู้อนุมัติพิจารณา</td></tr><tr><td>อนุมัติแล้ว</td><td>รอเจ้าหน้าที่คลังจ่ายของ</td></tr><tr><td>จ่ายแล้ว</td><td>ได้รับของครบแล้ว</td></tr><tr><td>จ่ายบางส่วน</td><td>ได้ของบางส่วน (ของในคลังไม่พอ ระบบบันทึกยอดที่ขาดไว้)</td></tr><tr><td>ปฏิเสธ</td><td>ผู้อนุมัติไม่อนุมัติ</td></tr></tbody></table>
+<ul><li>ถ้าคำขอค้างนานจะมีป้าย <strong>"เกินกำหนด"</strong> เตือน</li><li>พิมพ์ใบเบิกเป็น PDF ได้จากหน้ารายละเอียดคำขอ</li></ul>
+<hr>
+<h2>ข้อควรรู้</h2>
+<ul><li><strong>คุณอนุมัติคำขอของตัวเองไม่ได้</strong> — ต้องให้ผู้อนุมัติ (Approver) คนอื่นเป็นผู้อนุมัติ</li><li>ถ้าโครงการถูกปิด/ยกเลิกแล้ว จะ<strong>เบิกวัสดุใหม่เข้าโครงการนั้นไม่ได้</strong></li><li>คุณจะไม่เห็นเมนู โครงการ / ผู้ใช้งาน และปุ่มอนุมัติ — เป็นเรื่องปกติตามสิทธิ์</li></ul>
+<hr>
+<h2>คำถามที่พบบ่อย</h2>
+<p><strong>ขอเบิกแล้วของไม่พอ?</strong> ระบบจ่ายเท่าที่มี (จ่ายบางส่วน) และบันทึกยอดที่ขาดไว้ ให้ติดตามหรือขอเบิกเพิ่มภายหลัง<br><strong>ทำไมไม่เห็นราคา?</strong> บัญชีระดับ STAFF ถูกออกแบบให้ไม่เห็นต้นทุน<br><strong>ลืมรหัสผ่าน?</strong> แจ้งผู้ดูแลระบบ (Admin) ให้ตั้งรหัสใหม่ให้</p>
+</body>
+</html>

@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>คู่มือ - ผู้อนุมัติ</title>
+<style>
+  body { font-family: "TH Sarabun New", "Sarabun", "Tahoma", sans-serif; font-size: 15pt; color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 24pt; border-bottom: 2px solid #333; padding-bottom: 6px; }
+  h2 { font-size: 19pt; margin-top: 18pt; color: #0b3d66; }
+  h3 { font-size: 16pt; margin-top: 14pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+  th, td { border: 1px solid #999; padding: 5px 8px; text-align: left; vertical-align: top; }
+  th { background: #eef3f7; }
+  code { font-family: "Consolas", monospace; background: #f2f2f2; padding: 1px 4px; }
+  pre { background: #f6f8fa; border: 1px solid #ddd; padding: 8px; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #b7c7d6; margin: 8pt 0; padding: 4pt 12pt; background: #f6f9fc; color: #33475b; }
+  a { color: #0b5cad; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 12pt 0; }
+</style>
+</head>
+<body>
+<h1>คู่มือสำหรับ ผู้อนุมัติ (Approver)</h1>
+<blockquote>บทบาทของคุณ: <strong>พิจารณาอนุมัติหรือปฏิเสธคำขอเบิกวัสดุ</strong><br>เมนูที่คุณใช้: Dashboard · Materials · คำขอเบิกวัสดุ · รายงาน · บัญชีของฉัน</blockquote>
+<hr>
+<h2>เริ่มต้นใช้งาน</h2>
+<ol><li>เปิดเว็บระบบ → กรอก <strong>อีเมล</strong> และ <strong>รหัสผ่าน</strong> → กด <strong>เข้าสู่ระบบ</strong></li><li>เปลี่ยนรหัสผ่านตัวเอง: กดที่ชื่อตัวเองมุมล่างซ้าย → <strong>บัญชีของฉัน</strong></li></ol>
+<hr>
+<h2>หน้าที่หลักของคุณ</h2>
+<h3>พิจารณาคำขอเบิกวัสดุ (เมนู คำขอเบิกวัสดุ)</h3>
+<ol><li>เปิดแถบ <strong>"รออนุมัติ"</strong> จะเห็นคำขอที่รอคุณพิจารณา</li><li>คลิกเข้าไปดูรายละเอียด: ใครขอ, วัสดุอะไร, จำนวน, โครงการ/ไซต์ไหน</li><li>ตัดสินใจ:</li></ol>
+<ul><li><strong>อนุมัติ</strong> → คำขอไปสถานะ "อนุมัติแล้ว" รอเจ้าหน้าที่คลังจ่ายของ</li><li><strong>ปฏิเสธ</strong> → คำขอจบที่สถานะ "ปฏิเสธ"</li></ul>
+<h3>สังเกตป้ายเตือน "เกินกำหนด"</h3>
+<p>คำขอที่ค้างรออนุมัติเกิน 24 ชั่วโมงจะมีป้าย <strong>"เกินกำหนด"</strong> ช่วยให้คุณจัดลำดับความสำคัญได้ (เป็นแค่ป้ายเตือน ไม่มีการแจ้งเตือนอัตโนมัติ)</p>
+<hr>
+<h2>ข้อควรรู้</h2>
+<ul><li><strong>คุณอนุมัติคำขอที่ตัวเองเป็นผู้ขอไม่ได้</strong> — ระบบจะไม่แสดงปุ่มอนุมัติสำหรับคำขอของคุณเอง (ต้องให้ผู้อนุมัติคนอื่นทำ)</li><li>การอนุมัติ <strong>ยังไม่ได้จ่ายของ</strong> — เป็นแค่การอนุมัติ ของจะออกจากคลังตอนเจ้าหน้าที่คลังกด "จ่ายวัสดุ"</li><li>คุณจะไม่เห็นราคาทุน (สิทธิ์ระดับ STAFF) และไม่เห็นเมนูโครงการ/ผู้ใช้งาน</li></ul>
+<hr>
+<h2>คำถามที่พบบ่อย</h2>
+<p><strong>อนุมัติผิดคำขอ?</strong> แจ้งเจ้าหน้าที่คลังก่อนที่จะจ่ายของ หรือประสานผู้ดูแลระบบ<br><strong>ทำไมคำขอบางอันไม่มีปุ่มอนุมัติ?</strong> เพราะเป็นคำขอที่คุณเป็นผู้ขอเอง — ต้องให้คนอื่นอนุมัติ</p>
+</body>
+</html>

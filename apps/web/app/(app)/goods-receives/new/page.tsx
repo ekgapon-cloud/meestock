@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { MaterialListResponse, PurchaseOrderListResponse, Supplier, Warehouse } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { CostedItemsField } from "../../../../components/CostedItemsField";
+import { SubmitButton } from "../../../../components/SubmitButton";
 import { createGoodsReceiveAction } from "./actions";
 
 export default async function NewGoodsReceivePage({
@@ -128,9 +129,9 @@ export default async function NewGoodsReceivePage({
           )}
 
           <div className="form-actions">
-            <button type="submit" disabled={!!selectedPO && remainingItems.length === 0}>
+            <SubmitButton disabled={!!selectedPO && remainingItems.length === 0}>
               บันทึกการรับวัสดุ
-            </button>
+            </SubmitButton>
             <Link href="/goods-receives">ยกเลิก</Link>
           </div>
         </form>

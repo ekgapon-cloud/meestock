@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Me, POStatus, PurchaseOrder } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { Logo } from "../../../../components/Logo";
+import { SubmitButton } from "../../../../components/SubmitButton";
 import { DownloadPdfButton } from "../../DownloadPdfButton";
 import { cancelPurchaseOrderAction, markPurchaseOrderOrderedAction } from "./actions";
 
@@ -26,7 +27,7 @@ export default async function PurchaseOrderDetailPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { error?: string };
+  searchParams: { error?: string; confirm?: string };
 }) {
   let po: PurchaseOrder;
   let me: Me;
@@ -102,26 +103,38 @@ export default async function PurchaseOrderDetailPage({
         </tbody>
       </table>
 
-      {(canMarkOrdered || canCancel || canReceive) && (
-        <section className="form-actions">
-          {canMarkOrdered && (
-            <form action={markPurchaseOrderOrderedAction.bind(null, po.id)}>
-              <button type="submit">สั่งซื้อ</button>
-            </form>
-          )}
-          {canReceive && (
-            <Link href={`/goods-receives/new?poId=${po.id}`} className="btn-primary">
-              รับสินค้า
-            </Link>
-          )}
-          {canCancel && (
+      {canCancel && searchParams.confirm === "cancel" ? (
+        <div className="confirm-panel">
+          <p className="confirm-warning">⚠️ ยืนยันยกเลิกใบสั่งซื้อนี้? สถานะจะเปลี่ยนเป็น “ยกเลิก” และย้อนกลับไม่ได้</p>
+          <div className="form-actions">
             <form action={cancelPurchaseOrderAction.bind(null, po.id)}>
-              <button type="submit" className="btn-danger-sm">
-                ยกเลิกใบสั่งซื้อ
-              </button>
+              <SubmitButton className="btn-danger" pendingLabel="กำลังยกเลิก…">
+                ยืนยันยกเลิกใบสั่งซื้อ
+              </SubmitButton>
             </form>
-          )}
-        </section>
+            <Link href={`/purchase-orders/${po.id}`}>ไม่ยกเลิก</Link>
+          </div>
+        </div>
+      ) : (
+        (canMarkOrdered || canCancel || canReceive) && (
+          <section className="form-actions">
+            {canMarkOrdered && (
+              <form action={markPurchaseOrderOrderedAction.bind(null, po.id)}>
+                <SubmitButton>สั่งซื้อ</SubmitButton>
+              </form>
+            )}
+            {canReceive && (
+              <Link href={`/goods-receives/new?poId=${po.id}`} className="btn-primary">
+                รับสินค้า
+              </Link>
+            )}
+            {canCancel && (
+              <Link href={`/purchase-orders/${po.id}?confirm=cancel`} className="btn-danger-sm">
+                ยกเลิกใบสั่งซื้อ
+              </Link>
+            )}
+          </section>
+        )
       )}
 
       <p className="print-hide">

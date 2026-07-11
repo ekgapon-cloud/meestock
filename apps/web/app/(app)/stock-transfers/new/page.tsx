@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { MaterialListResponse, Warehouse } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
+import { SubmitButton } from "../../../../components/SubmitButton";
 import { TransferItemsField } from "./TransferItemsField";
 import { createStockTransferAction } from "./actions";
 
@@ -59,7 +60,7 @@ export default async function NewStockTransferPage({ searchParams }: { searchPar
         <TransferItemsField materials={materialsData.items} />
 
         <div className="form-actions">
-          <button type="submit">บันทึกการโอนย้าย</button>
+          <SubmitButton>บันทึกการโอนย้าย</SubmitButton>
           <Link href="/stock-transfers">ยกเลิก</Link>
         </div>
       </form>

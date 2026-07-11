@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { StockCountSheetRow, Warehouse } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
+import { SubmitButton } from "../../../../components/SubmitButton";
 import { createStockCountAction } from "./actions";
 
 export default async function NewStockCountPage({
@@ -87,7 +88,7 @@ export default async function NewStockCountPage({
           </table>
 
           <div className="form-actions">
-            <button type="submit">บันทึกการนับสต๊อก</button>
+            <SubmitButton>บันทึกการนับสต๊อก</SubmitButton>
             <Link href="/stock-counts">ยกเลิก</Link>
           </div>
         </form>

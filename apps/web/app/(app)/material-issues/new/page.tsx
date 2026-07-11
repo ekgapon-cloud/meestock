@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { MaterialListResponse, Warehouse } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
+import { SubmitButton } from "../../../../components/SubmitButton";
 import { createMaterialIssueAction } from "./actions";
 import { ItemsField } from "./ItemsField";
 
@@ -51,9 +52,9 @@ export default async function NewMaterialIssuePage({ searchParams }: { searchPar
         <ItemsField materials={materialsData.items} />
 
         <div className="form-actions">
-          <button type="submit" disabled={warehousesWithProject.length === 0}>
+          <SubmitButton disabled={warehousesWithProject.length === 0} pendingLabel="กำลังส่ง…">
             ส่งคำขอ
-          </button>
+          </SubmitButton>
           <Link href="/material-issues">ยกเลิก</Link>
         </div>
       </form>

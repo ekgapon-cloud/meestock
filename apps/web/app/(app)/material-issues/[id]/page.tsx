@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { IssueStatus, Me, MaterialIssue } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { Logo } from "../../../../components/Logo";
+import { SubmitButton } from "../../../../components/SubmitButton";
 import { DownloadPdfButton } from "../../DownloadPdfButton";
 import { approveMaterialIssueAction, fulfillMaterialIssueAction, rejectMaterialIssueAction } from "./actions";
 
@@ -171,13 +172,11 @@ export default async function MaterialIssueDetailPage({
                     ))}
                   </tbody>
                 </table>
-                <button type="submit">อนุมัติ</button>
+                <SubmitButton>อนุมัติ</SubmitButton>
               </form>
               <form action={rejectMaterialIssueAction.bind(null, issue.id)} className="reject-form">
                 <input type="text" name="reason" placeholder="เหตุผลที่ปฏิเสธ" required />
-                <button type="submit" className="btn-danger-sm">
-                  ปฏิเสธ
-                </button>
+                <SubmitButton className="btn-danger-sm">ปฏิเสธ</SubmitButton>
               </form>
             </>
           )}
@@ -213,7 +212,12 @@ export default async function MaterialIssueDetailPage({
                   })}
                 </tbody>
               </table>
-              <button type="submit">จ่ายวัสดุ</button>
+              <SubmitButton
+                confirmMessage="ยืนยันจ่ายวัสดุ? รายการนี้จะถูกบันทึกลงสต๊อกทันทีและย้อนกลับไม่ได้"
+                pendingLabel="กำลังจ่าย…"
+              >
+                จ่ายวัสดุ
+              </SubmitButton>
             </form>
           )}
         </section>

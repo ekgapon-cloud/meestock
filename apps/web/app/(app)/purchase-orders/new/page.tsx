@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { MaterialListResponse, Supplier } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
 import { CostedItemsField } from "../../../../components/CostedItemsField";
+import { SubmitButton } from "../../../../components/SubmitButton";
 import { createPurchaseOrderAction } from "./actions";
 
 export default async function NewPurchaseOrderPage({ searchParams }: { searchParams: { error?: string } }) {
@@ -46,9 +47,7 @@ export default async function NewPurchaseOrderPage({ searchParams }: { searchPar
         <CostedItemsField materials={materialsData.items} />
 
         <div className="form-actions">
-          <button type="submit" disabled={suppliers.length === 0}>
-            สร้างใบสั่งซื้อ
-          </button>
+          <SubmitButton disabled={suppliers.length === 0}>สร้างใบสั่งซื้อ</SubmitButton>
           <Link href="/purchase-orders">ยกเลิก</Link>
         </div>
       </form>

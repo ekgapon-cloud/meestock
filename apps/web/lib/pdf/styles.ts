@@ -33,7 +33,8 @@ export const pdfStyles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    width: 44,
+    // logo-icon.png is 687x655 — keep that aspect ratio so the gear isn't squished
+    width: 46,
     height: 44,
   },
   companyName: {

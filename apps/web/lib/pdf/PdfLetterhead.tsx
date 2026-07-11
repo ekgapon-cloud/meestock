@@ -3,7 +3,11 @@ import { readFileSync } from "node:fs";
 import { Image, Text, View } from "@react-pdf/renderer";
 import { pdfStyles } from "./styles";
 
-const LOGO_DATA = readFileSync(path.join(process.cwd(), "public/logo-full.png"));
+// logo-icon.png is RGBA with a transparent background; logo-full.png is opaque RGB
+// (white box) and would print a visible white square behind the badge. The company
+// name is already rendered as text below, so the icon-only mark reads cleaner here —
+// the full badge's outer text ring is illegible at this size anyway.
+const LOGO_DATA = readFileSync(path.join(process.cwd(), "public/logo-icon.png"));
 
 export function PdfLetterhead() {
   return (

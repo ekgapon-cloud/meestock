@@ -396,7 +396,7 @@ button:disabled {
 .app-content {
   flex: 1;
   padding: 1.5rem;
-  max-width: 1100px;
+  max-width: 1500px;
   width: 100%;
 }
 
@@ -600,6 +600,159 @@ button:disabled {
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
+}
+
+/* ---- Redesigned dashboard: full-width KPI hero + 12-col bento grid ---- */
+.dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.dash-kpi {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  border-left: 4px solid var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dash-kpi.kpi-warn {
+  border-left-color: #d97706;
+}
+
+.dash-kpi.kpi-crit {
+  border-left-color: var(--color-danger);
+}
+
+.dash-kpi .stat-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dash-kpi .stat-value {
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+
+.dash-kpi .kpi-sub {
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+.dash-bento {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.dash-bento > .bento-card {
+  min-width: 0;
+}
+
+.span-3 { grid-column: span 3; }
+.span-4 { grid-column: span 4; }
+.span-5 { grid-column: span 5; }
+.span-6 { grid-column: span 6; }
+.span-7 { grid-column: span 7; }
+.span-8 { grid-column: span 8; }
+.span-12 { grid-column: span 12; }
+
+.bento-card .card-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-text);
+}
+
+.bento-card .card-title .card-count {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text-muted, #64748b);
+  background: var(--color-bg);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+/* keep tables in a card from forcing overflow */
+.bento-card table {
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .span-3 { grid-column: span 6; }
+  .span-4 { grid-column: span 6; }
+  .span-5 { grid-column: span 6; }
+  .span-7 { grid-column: span 6; }
+  .span-8 { grid-column: span 12; }
+}
+
+@media (max-width: 760px) {
+  .dash-bento > .bento-card {
+    grid-column: span 12 !important;
+  }
+}
+
+/* labeled monthly trend bar chart */
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  height: 150px;
+  margin-top: auto;
+}
+
+.trend-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.trend-bar-wrap {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.trend-bar {
+  width: 100%;
+  max-width: 3rem;
+  background: var(--color-primary);
+  border-radius: 6px 6px 0 0;
+  opacity: 0.55;
+  min-height: 4px;
+  transition: opacity 0.15s;
+}
+
+.trend-bar.is-latest {
+  opacity: 1;
+}
+
+.trend-month {
+  font-size: 0.72rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+.trend-val {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text);
+  min-height: 0.9rem;
 }
 
 .severity-pill {

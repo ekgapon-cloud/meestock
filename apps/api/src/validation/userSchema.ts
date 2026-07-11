@@ -21,6 +21,11 @@ export const updateUserRoleSchema = z.object({
   role: z.nativeEnum(EmployeeRole),
 });
 
+/** Admin sets a new password for a user (a reset — the old one is never seen, only replaced). */
+export const resetPasswordSchema = z.object({
+  newPassword: z.string().min(8),
+});
+
 export const listUsersQuerySchema = z.object({
   role: z.nativeEnum(EmployeeRole).optional(),
   accessLevel: z.nativeEnum(AccessLevel).optional(),
@@ -37,5 +42,6 @@ export const assignSiteAccessSchema = z.object({
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 export type AssignSiteAccessInput = z.infer<typeof assignSiteAccessSchema>;

@@ -2,8 +2,12 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
-import { findEmployeeByEmail } from "../repositories/employeeRepository.js";
-import type { LoginInput } from "../validation/authSchema.js";
+import {
+  findEmployeeByEmail,
+  findEmployeeWithPasswordById,
+  updateEmployee,
+} from "../repositories/employeeRepository.js";
+import type { ChangePasswordInput, LoginInput } from "../validation/authSchema.js";
 
 export async function login({ email, password }: LoginInput) {
   const employee = await findEmployeeByEmail(email);
@@ -29,4 +33,21 @@ export async function login({ email, password }: LoginInput) {
       accessLevel: employee.accessLevel,
     },
   };
+}
+
+/** Self-service: a user changes their own password after proving they know the current one. */
+export async function changePassword(userId: string, { currentPassword, newPassword }: ChangePasswordInput) {
+  const employee = await findEmployeeWithPasswordById(userId);
+  if (!employee) {
+    throw new AppError("UNAUTHORIZED", "Authentication required");
+  }
+
+  const currentMatches = await bcrypt.compare(currentPassword, employee.passwordHash);
+  if (!currentMatches) {
+    throw new AppError("UNAUTHORIZED", "Current password is incorrect");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, env.BCRYPT_SALT_ROUNDS);
+  await updateEmployee(userId, { passwordHash });
+  return { message: "Password changed" };
 }

@@ -53,6 +53,20 @@ export async function assignSiteAccessAction(id: string, formData: FormData): Pr
   revalidatePath(`/users/${id}`);
 }
 
+export async function resetUserPasswordAction(id: string, formData: FormData): Promise<void> {
+  const newPassword = String(formData.get("newPassword") ?? "");
+  if (newPassword.length < 8) {
+    redirect(`/users/${id}?error=${encodeURIComponent("รหัสผ่านใหม่ต้องยาวอย่างน้อย 8 ตัวอักษร")}`);
+  }
+
+  try {
+    await apiFetch(`/users/${id}/password`, { method: "PATCH", body: { newPassword } });
+  } catch (err) {
+    redirectWithError(id, err);
+  }
+  redirect(`/users/${id}?passwordReset=1`);
+}
+
 export async function revokeSiteAccessAction(id: string, warehouseId: string): Promise<void> {
   try {
     await apiFetch(`/users/${id}/site-access/${warehouseId}`, { method: "DELETE" });

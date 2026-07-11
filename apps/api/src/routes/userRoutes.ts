@@ -4,6 +4,7 @@ import {
   createUserHandler,
   getUserHandler,
   listUsersHandler,
+  resetUserPasswordHandler,
   revokeSiteAccessHandler,
   updateUserHandler,
   updateUserRoleHandler,
@@ -22,5 +23,6 @@ userRouter.get("/:id", asyncHandler(getUserHandler));
 userRouter.post("/", asyncHandler(createUserHandler));
 userRouter.patch("/:id", asyncHandler(updateUserHandler));
 userRouter.patch("/:id/role", asyncHandler(updateUserRoleHandler));
+userRouter.patch("/:id/password", asyncHandler(resetUserPasswordHandler));
 userRouter.post("/:id/site-access", asyncHandler(assignSiteAccessHandler));
 userRouter.delete("/:id/site-access/:warehouseId", asyncHandler(revokeSiteAccessHandler));

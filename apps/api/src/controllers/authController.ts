@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 import { getAccessibleWarehouseIds } from "../services/accessControlService.js";
-import { login } from "../services/authService.js";
-import { loginSchema } from "../validation/authSchema.js";
+import { changePassword, login } from "../services/authService.js";
+import { changePasswordSchema, loginSchema } from "../validation/authSchema.js";
 
 export async function loginHandler(req: Request, res: Response) {
   const input = loginSchema.parse(req.body);
@@ -12,6 +12,14 @@ export async function loginHandler(req: Request, res: Response) {
 
 export function logoutHandler(_req: Request, res: Response) {
   res.json({ message: "Logged out" });
+}
+
+export async function changePasswordHandler(req: Request, res: Response) {
+  if (!req.user) {
+    throw new AppError("UNAUTHORIZED", "Authentication required");
+  }
+  const input = changePasswordSchema.parse(req.body);
+  res.json(await changePassword(req.user.id, input));
 }
 
 export async function meHandler(req: Request, res: Response) {

@@ -5,6 +5,7 @@ import {
   createUser,
   getUser,
   listUsers,
+  resetUserPassword,
   revokeSiteAccess,
   updateUser,
   updateUserRole,
@@ -13,6 +14,7 @@ import {
   assignSiteAccessSchema,
   createUserSchema,
   listUsersQuerySchema,
+  resetPasswordSchema,
   updateUserRoleSchema,
   updateUserSchema,
 } from "../validation/userSchema.js";
@@ -51,6 +53,12 @@ export async function updateUserHandler(req: Request, res: Response) {
 export async function updateUserRoleHandler(req: Request, res: Response) {
   const input = updateUserRoleSchema.parse(req.body);
   const user = await updateUserRole(req.params["id"] as string, input);
+  res.json(user);
+}
+
+export async function resetUserPasswordHandler(req: Request, res: Response) {
+  const input = resetPasswordSchema.parse(req.body);
+  const user = await resetUserPassword(req.params["id"] as string, input);
   res.json(user);
 }
 

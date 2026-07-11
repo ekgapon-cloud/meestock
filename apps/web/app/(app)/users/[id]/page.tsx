@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { AdminUser, Me, Warehouse } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../../../lib/api";
-import { assignSiteAccessAction, revokeSiteAccessAction, updateUserAction } from "./actions";
+import { assignSiteAccessAction, resetUserPasswordAction, revokeSiteAccessAction, updateUserAction } from "./actions";
 
 const ROLES = ["REQUESTER", "APPROVER", "WAREHOUSE", "EXECUTIVE", "PURCHASING"] as const;
 const ACCESS_LEVELS = ["STAFF", "MANAGER", "ADMIN"] as const;
@@ -15,7 +15,7 @@ export default async function UserDetailPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { error?: string };
+  searchParams: { error?: string; passwordReset?: string };
 }) {
   let user: AdminUser;
   let me: Me;
@@ -91,6 +91,20 @@ export default async function UserDetailPage({
         <div className="form-actions">
           <button type="submit">บันทึก</button>
         </div>
+      </form>
+
+      <h2>ตั้งรหัสผ่านใหม่ให้ผู้ใช้นี้</h2>
+      {searchParams.passwordReset && (
+        <div className="success-banner">ตั้งรหัสผ่านใหม่เรียบร้อย — แจ้งรหัสใหม่ให้ผู้ใช้เพื่อเข้าสู่ระบบ</div>
+      )}
+      <p className="hint">
+        รหัสผ่านเดิมดูไม่ได้ (เก็บแบบเข้ารหัสทางเดียว) — ตั้งรหัสใหม่แทนได้เท่านั้น แล้วแจ้งผู้ใช้ให้เปลี่ยนเองภายหลัง
+      </p>
+      <form action={resetUserPasswordAction.bind(null, user.id)} className="manual-add-row">
+        <input type="password" name="newPassword" placeholder="รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)" minLength={8} required />
+        <button type="submit" className="btn-danger-sm">
+          ตั้งรหัสผ่านใหม่
+        </button>
       </form>
 
       <h2>สิทธิ์เข้าถึงไซต์งาน</h2>

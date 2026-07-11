@@ -36,6 +36,11 @@ export function findEmployeeById(id: string) {
   return prisma.employee.findUnique({ where: { id }, select: employeeSelect });
 }
 
+/** Includes passwordHash — for verifying the current password on self-service change. Never return directly. */
+export function findEmployeeWithPasswordById(id: string) {
+  return prisma.employee.findUnique({ where: { id } });
+}
+
 export function findEmployees(where: Prisma.EmployeeWhereInput, skip: number, take: number) {
   return prisma.employee.findMany({ where, skip, take, select: employeeSelect, orderBy: { name: "asc" } });
 }

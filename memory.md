@@ -270,6 +270,15 @@ User กังวลว่าปิดโครงการกดครั้ง
 - **Verified**: Playwright — กด "ปิดโครงการ" → status ยัง "กำลังดำเนินการ" + อยู่หน้า confirm (กันพลาดได้) → ยืนยัน → "เสร็จสิ้น" → ปุ่มเปิดกลับโผล่ → กด → "กำลังดำเนินการ". ลบโครงการทดสอบคืน 4 เดิม
 - **หมายเหตุ**: `updateProjectStatus` signature เปลี่ยนเป็น 3 args (เพิ่ม actorAccessLevel) — ถ้ามีที่เรียกใหม่ต้องส่ง accessLevel
 
+## เปลี่ยน/รีเซ็ตรหัสผ่าน + จุดยืนความปลอดภัย (2026-07-11)
+User ขอ 2 อย่าง: (1) ผู้ใช้เปลี่ยนรหัสตัวเองได้ (2) **แอดมินเห็นรหัสผ่านทุกคน**
+- **ข้อ 2 ปฏิเสธด้วยเหตุผลความปลอดภัย** — รหัสเก็บเป็น bcrypt hash (ทางเดียว) ถอดกลับไม่ได้ ตัว plaintext ไม่ได้เก็บไว้เลย. การเก็บ plaintext เพื่อให้แอดมินเห็น = ช่องโหว่ร้ายแรง (DB หลุด/PDPA/สวมรอย). อธิบายให้ user แล้วทำ **"แอดมิน reset ตั้งรหัสใหม่ให้"** แทน (ครอบคลุมเคสจริง "ช่วยคนลืมรหัส")
+- **Self-service**: `POST /auth/change-password` (authenticated) — verify `currentPassword` ด้วย `bcrypt.compare` ก่อน hash รหัสใหม่. เพิ่ม repo `findEmployeeWithPasswordById` (finder เดียวที่คืน passwordHash — ตัวอื่นใช้ `select: employeeSelect` ตัด hash). web: หน้า `/account` (ทุก role เข้าได้) ฟอร์ม current/new/confirm + ลิงก์จากแถบ user ใน sidebar (`Link` ครอบ `.sidebar-user` → /account)
+- **Admin reset**: `PATCH /users/:id/password` (ADMIN-gated เดิม) → `resetUserPassword` hash รหัสใหม่ set ให้. web: ฟอร์มในหน้า `/users/[id]` (`resetUserPasswordAction.bind(null, id)`) + คำอธิบายว่ารหัสเดิมดูไม่ได้
+- Test `passwordChange.test.ts` 3 เคส (change ถูก/ผิด current, admin reset ไม่คืน hash). **55/55** ผ่าน. typecheck สะอาด
+- **Verified**: curl — wrong current 401, Admin123!→temp→คืน (login เก่า/ใหม่ถูกต้อง), admin reset สร้าง user→reset→login ได้ (ไม่มี hash รั่ว)→ลบ user. Playwright /account — mismatch error ไทย, เปลี่ยน+คืนสำเร็จ, admin password กลับ Admin123!. ไม่แตะข้อมูลจริง
+- เพิ่ม `.success-banner` CSS (เขียว) mirror `.error-banner`
+
 ## TODO / Open Questions
 - [x] ยืนยัน field ทั้งหมดใน schema — ตรงกับ `schema.prisma` จริงแล้ว
 - [x] Edge case ของ role — user ยืนยันแล้วว่าต้องการ role จัดซื้อ (`PURCHASING`) แยกจาก `WAREHOUSE`, implement เสร็จแล้วด้านบน

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Me } from "shared-types";
 import { apiFetch, ApiError, redirectToLogin } from "../../lib/api";
 import { LogoutButton } from "./LogoutButton";
@@ -26,13 +27,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           showUsers={me.accessLevel === "ADMIN"}
           showProjects={me.accessLevel === "ADMIN" || me.accessLevel === "MANAGER"}
         />
-        <div className="sidebar-user">
+        <Link href="/account" className="sidebar-user">
           <div className="sidebar-avatar">{initialsOf(me.name)}</div>
           <div className="sidebar-user-info">
             <span className="sidebar-user-name">{me.name}</span>
             <span className="badge">{me.role}</span>
           </div>
-        </div>
+        </Link>
         <LogoutButton />
       </aside>
       <main className="app-content">{children}</main>

@@ -16,6 +16,7 @@ import type {
   AssignSiteAccessInput,
   CreateUserInput,
   ListUsersQuery,
+  ResetPasswordInput,
   UpdateUserInput,
   UpdateUserRoleInput,
 } from "../validation/userSchema.js";
@@ -93,6 +94,16 @@ export async function updateUser(id: string, input: UpdateUserInput, actingUserI
     ...(input.accessLevel !== undefined ? { accessLevel: input.accessLevel } : {}),
     ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
   });
+}
+
+/**
+ * Admin resets a user's password to a new value. This is a *set*, not a reveal — the existing
+ * password is a one-way bcrypt hash and cannot be recovered or shown; it can only be replaced.
+ */
+export async function resetUserPassword(id: string, input: ResetPasswordInput) {
+  await getUser(id);
+  const passwordHash = await bcrypt.hash(input.newPassword, env.BCRYPT_SALT_ROUNDS);
+  return updateEmployee(id, { passwordHash });
 }
 
 export async function updateUserRole(id: string, input: UpdateUserRoleInput) {
